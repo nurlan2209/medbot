@@ -1,0 +1,2 @@
+#include "Generated.xcconfig"
+CONFIGURATION_BUILD_DIR = $(SRCROOT)/../build/ios/iphoneos
