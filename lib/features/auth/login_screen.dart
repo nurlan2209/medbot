@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/features/auth/registration_screen.dart';
 import 'package:med_bot/features/home/home_screen.dart';
+import 'package:med_bot/features/main_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -54,9 +55,10 @@ class LoginScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
+                  Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    MaterialPageRoute(builder: (context) => const MainScreen()),
+                    (Route<dynamic> route) => false,
                   );
                 },
                 style: ElevatedButton.styleFrom(

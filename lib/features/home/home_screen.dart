@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:med_bot/features/chat/chat_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -14,7 +15,15 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Card(
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ChatScreen(),
+                    ),
+                  );
+                },
+                child: Card(
                 elevation: 0,
                 color: Colors.grey[200],
                 shape: RoundedRectangleBorder(
@@ -30,10 +39,7 @@ class HomeScreen extends StatelessWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(
-                          Icons.add,
-                          size: 32,
-                        ),
+                        child: const Icon(Icons.add, size: 32),
                       ),
                       const SizedBox(width: 16),
 
@@ -50,16 +56,16 @@ class HomeScreen extends StatelessWidget {
                           SizedBox(height: 4),
                           Text(
                             'Flash 2.5 Pro',
-                            style: TextStyle(
-                              color: Colors.grey,
-                            ),
+                            style: TextStyle(color: Colors.grey),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
               ),
+              ),
+
 
               const SizedBox(height: 24),
 
@@ -74,10 +80,20 @@ class HomeScreen extends StatelessWidget {
                 child: ListView.builder(
                   itemCount: 7,
                   itemBuilder: (context, index) {
-                    return Card(
-                      child: ListTile(
-                        title: Text('Частая головная боль'),
-                        subtitle: Text('Последнее сообщение 15 мин назад'),
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ChatScreen(),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        child: ListTile(
+                          title: Text('Частая головная боль'),
+                          subtitle: Text('Последнее сообщение 15 мин назад'),
+                        ),
                       ),
                     );
                   },
@@ -86,23 +102,6 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Главная',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Профиль',
-          ),
-        ],
-        onTap: (index) {
-
-        },
       ),
     );
   }
