@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/features/auth/registration_screen.dart';
-import 'package:med_bot/features/home/home_screen.dart';
 import 'package:med_bot/features/main_screen.dart';
 
 class LoginScreen extends StatelessWidget {
