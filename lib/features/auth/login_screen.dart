@@ -3,6 +3,7 @@ import 'package:med_bot/features/auth/registration_screen.dart';
 import 'package:med_bot/features/main_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:med_bot/config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,7 +13,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final String serverurl = 'http://localhost:3001';
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -25,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('$serverurl/login'),
+        Uri.parse('$serverUrl/login'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'email': _emailController.text,
@@ -67,6 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
