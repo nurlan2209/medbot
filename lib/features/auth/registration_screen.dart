@@ -57,9 +57,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       final responseData = json.decode(response.body);
 
       if (response.statusCode == 201) {
+        final userEmail = responseData['user']['email'];
+
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          MaterialPageRoute(
+            builder: (context) => MainScreen(userEmail: userEmail),
+          ),
           (Route<dynamic> route) => false,
         );
       } else {
@@ -262,14 +266,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 class DateTextFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     if (oldValue.text.length >= newValue.text.length) {
       return newValue;
     }
 
     var dateText = _addSeparators(newValue.text, '.');
     return newValue.copyWith(
-        text: dateText, selection: updateCursorPosition(dateText));
+      text: dateText,
+      selection: updateCursorPosition(dateText),
+    );
   }
 
   String _addSeparators(String value, String separator) {

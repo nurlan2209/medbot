@@ -3,7 +3,8 @@ import 'package:med_bot/features/profile/profile_screen.dart';
 import 'package:med_bot/features/home/home_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final String userEmail;
+  const MainScreen({super.key, required this.userEmail});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -12,10 +13,16 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  static final List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(),
-    const ProfileScreen(),
-  ];
+  late final List<Widget> _widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _widgetOptions = <Widget>[
+      HomeScreen(),
+      ProfileScreen(userEmail: widget.userEmail),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -30,7 +37,10 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Главная'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Профиль'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Профиль',
+          ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,

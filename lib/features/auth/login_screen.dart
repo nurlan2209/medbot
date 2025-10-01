@@ -13,7 +13,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -36,19 +35,29 @@ class _LoginScreenState extends State<LoginScreen> {
       final responseData = json.decode(response.body);
 
       if (response.statusCode == 200) {
+        final userEmail = responseData['user']['email'];
+
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          MaterialPageRoute(
+            builder: (context) => MainScreen(userEmail: userEmail),
+          ),
           (Route<dynamic> route) => false,
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: ${responseData['message']}'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Ошибка: ${responseData['message']}'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Не удалось подключиться к серверу: $e'), backgroundColor: Colors.red)
+        SnackBar(
+          content: Text('Не удалось подключиться к серверу: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       setState(() {
@@ -57,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  @override 
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -126,9 +135,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text(
-                      'Войти',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
+                        'Войти',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
               ),
             ),
             const Spacer(),

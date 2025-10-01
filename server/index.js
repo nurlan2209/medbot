@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const { use } = require('react');
 
 const app = express();
 app.use(cors());
@@ -17,6 +18,10 @@ const UserSchema = new mongoose.Schema({
     dateOfBirth: String,
     phoneNumber: String,
     password: { type: String, required: true },
+    gender: String,
+    bloodGroup: String,
+    height: String,
+    weight: String,
 });
 
 const User = mongoose.model('User', UserSchema);
@@ -77,6 +82,23 @@ app.get('/user/:email', async (req, res) => {
         res.status(200).send(user);
     } catch (error) {
         res.status(500).send({ message: 'Ошибка при поиске пользователя', error });
+    }
+});
+
+app.put('/user/:email', async (req, res) => {
+    try {
+        const { fullName, dateOfBirth, phoneNumber, bloodGroup, height, weight, gender } = req.body;
+        const updatedUser = await User.findOneAndUpdate(
+            { email: req.params.email },
+            { fullName, dateOfBirth, phoneNumber, bloodGroup, height, weight, gender },
+            { new: true }
+        );
+        if (!updatedUser) {
+            return res.status(404).send({ message: 'Пользователь не найден' });
+        }
+        res.status(200).send({ message: 'Профиль успешно обновлен', user: updatedUser });
+    } catch (error) {
+        res.status(500).send({ message: 'Ошибка при обновлении профиля', error });
     }
 });
 
