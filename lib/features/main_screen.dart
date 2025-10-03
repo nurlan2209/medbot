@@ -33,6 +33,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -46,6 +47,7 @@ class _MainScreenState extends State<MainScreen> {
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         showSelectedLabels: true,
+        backgroundColor: Colors.white,
         showUnselectedLabels: true,
         onTap: _onItemTapped,
       ),

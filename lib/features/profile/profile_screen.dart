@@ -59,10 +59,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   SizedBox(
-                    height: 230,
+                    height: 240,
                     child: Stack(
                       children: [
-                        Container(height: 180, color: Colors.white),
+                        Container(height: 240, color: Colors.white),
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Column(
@@ -88,6 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   fontSize: 14,
                                 ),
                               ),
+                              const SizedBox(height: 25),
                             ],
                           ),
                         ),

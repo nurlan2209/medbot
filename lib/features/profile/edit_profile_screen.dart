@@ -106,7 +106,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Редактировать профиль'),
         centerTitle: true,
       ),
@@ -144,6 +146,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ? const CircularProgressIndicator(color: Colors.white)
                   : const Text('Сохранить'),
               style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 50),
               ),
             ),

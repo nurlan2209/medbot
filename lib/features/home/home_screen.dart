@@ -36,6 +36,7 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                     child: Card(
+                      color: Colors.white,
                       elevation: 1,
                       shadowColor: Colors.black12,
                       margin: const EdgeInsets.only(bottom: 12),
@@ -45,9 +46,9 @@ class HomeScreen extends StatelessWidget {
                       child: const ListTile(
                         title: Text(
                           'Частая головная боль',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(fontWeight: FontWeight.bold, backgroundColor: Colors.white),
                         ),
-                        subtitle: Text('Последнее сообщение 15 мин назад'),
+                        subtitle: Text('Последнее сообщение 15 мин назад', style: TextStyle(backgroundColor: Colors.white)),
                       ),
                     ),
                   );
@@ -62,7 +63,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 15),
       decoration: const BoxDecoration(
         color: Colors.blue,
         borderRadius: BorderRadius.only(
@@ -74,43 +75,48 @@ class HomeScreen extends StatelessWidget {
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ChatScreen()),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.add, size: 32, color: Colors.blue),
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 45),
+              Row(
                 children: [
-                  Text(
-                    'МедБот',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ChatScreen()),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.add, size: 32, color: Colors.blue),
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Flash 2.5 Pro',
-                    style: TextStyle(color: Colors.white70),
-                  ),
+                  const SizedBox(width: 20),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'МедБот',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        'Flash 2.5 Pro',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  )
                 ],
-              ),
+              )
             ],
           ),
         ),
