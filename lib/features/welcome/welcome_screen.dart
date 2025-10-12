@@ -28,16 +28,44 @@ class WelcomeScreen extends StatelessWidget {
                       'Добро пожаловать в МедБот',
                       textAlign: TextAlign.center,
                       style: TextStyle(
+                        fontFamily: 'PPNeueMachina',
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                         color: Colors.black,
                       ),
-                    ),   
+                    ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Технологии, которые заботятся о вас',
+                    Text.rich(
+                      TextSpan(
+                        text: 'Технологии, которые ',
+                        style: TextStyle(
+                          fontFamily: 'PPNeueMachina',
+                          fontSize: 20,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: 'заботятся',
+                            style: TextStyle(
+                              fontFamily: 'NauryzRedKeds',
+                              fontSize: 24,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w900
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' о вас',
+                            style: TextStyle(
+                              fontFamily: 'PPNeueMachina',
+                              fontSize: 20,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w800
+                            ),
+                          ),
+                        ],
+                      ),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
                     ),
                     const SizedBox(height: 50),
 
@@ -61,8 +89,9 @@ class WelcomeScreen extends StatelessWidget {
                         'Авторизация +',
                         style: TextStyle(
                           fontSize: 18,
+                          fontFamily: 'PPNeueMachina',
+                          fontWeight: FontWeight.w800,
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),

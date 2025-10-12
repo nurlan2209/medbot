@@ -19,7 +19,7 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _widgetOptions = <Widget>[
-      HomeScreen(),
+      HomeScreen(userEmail: widget.userEmail),
       ProfileScreen(userEmail: widget.userEmail),
     ];
   }
