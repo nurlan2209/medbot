@@ -4,6 +4,8 @@ import 'package:med_bot/features/welcome/welcome_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:med_bot/config.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userEmail;
@@ -16,6 +18,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _userData;
   bool _isLoading = true;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -47,6 +50,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Загрузка аватара...')),
+      );
+
+      try {
+        final request = http.MultipartRequest(
+          'POST',
+          Uri.parse('$serverUrl/upload-avatar/${widget.userEmail}'),
+        );
+
+        request.files.add(await http.MultipartFile.fromPath('avatar', image.path));
+
+        final streamedResponse = await request.send();
+        final response = await http.Response.fromStream(streamedResponse);
+
+        if (!mounted) return;
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Аватар обновлен!')),
+          );
+          _fetchUserData();
+        } else {
+          final responseData = json.decode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка загрузки: ${responseData['message']}')),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Не удалось подключиться: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,10 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              CircleAvatar(
-                                radius: 50,
-                                backgroundColor: Colors.grey[300],
-                              ),
+                              _buildAvatar(),
                               const SizedBox(height: 8),
                               Text(
                                 _userData!['fullName'] ?? 'Нет данных',
@@ -169,6 +211,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    final avatarPath = _userData!['avatarUrl'];
+    final fullImageUrl = avatarPath != null && avatarPath.isNotEmpty
+        ? '$serverUrl$avatarPath'
+        : null;
+
+    final imageProvider = fullImageUrl != null
+        ? NetworkImage(fullImageUrl) as ImageProvider
+        : const AssetImage('assets/images/default_avatar.png');
+
+    return GestureDetector(
+      onTap: _pickAndUploadImage,
+      child: CircleAvatar(
+        radius: 50,
+        backgroundColor: Colors.grey[300],
+        backgroundImage: imageProvider,
+        child: fullImageUrl == null 
+          ? Icon(Icons.person, size: 50, color: Colors.grey[600])
+          : null,
+      ),
     );
   }
 

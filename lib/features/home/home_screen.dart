@@ -64,6 +64,36 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchChats();
   }
 
+  Future<void> _deleteChat(String chatId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$serverUrl/api/chats/$chatId'),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _chats.removeWhere((chat) => chat.id == chatId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Чат удален')),
+        );
+      } else {
+        final responseData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка: ${responseData['message']}')),
+        );
+        _fetchChats();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Не удалось подключиться к серверу: $e')),
+      );
+    }
+  }
+
   Future<void> _fetchChats() async {
     setState(() {
       _isLoading = true;
@@ -122,53 +152,71 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: _chats.length,
                         itemBuilder: (context, index) {
                           final chat = _chats[index];
-                          final lastMessage = chat.messages.isNotEmpty
-                              ? chat.messages.last
-                              : null;
+                          final lastMessage =
+                              chat.messages.isNotEmpty ? chat.messages.last : null;
+
+                          final localUpdatedAt = chat.updatedAt.toLocal();
                           final timeAgo = lastMessage != null
-                              ? DateFormat('HH:mm dd.MM').format(chat.updatedAt)
+                              ? DateFormat('HH:mm dd.MM').format(localUpdatedAt)
                               : 'Нет сообщений';
 
-                          return GestureDetector(
-                            onTap: () async {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatScreen(
-                                    initialChat: chat,
-                                    userEmail: widget.userEmail,
-                                  ),
-                                ),
-                              );
-                              if (result == true) {
-                                _fetchChats();
-                              }
-                            },
-                            child: Card(
-                              color: Colors.white,
-                              elevation: 1,
-                              shadowColor: Colors.black12,
-                              margin: const EdgeInsets.only(bottom: 12),
-                              shape: RoundedRectangleBorder(
+                          return Dismissible(
+                            key: Key(chat.id),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 20.0),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: ListTile(
-                                title: Text(
-                                  chat.title,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
+                              child: const Icon(Icons.delete, color: Colors.white),
+                            ),
+                            confirmDismiss: (direction) async => true,
+                            onDismissed: (direction) {
+                              _deleteChat(chat.id);
+                            },
+                            child: GestureDetector(
+                              onTap: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatScreen(
+                                      initialChat: chat,
+                                      userEmail: widget.userEmail,
+                                    ),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
+                                );
+                                if (result == true) {
+                                  _fetchChats();
+                                }
+                              },
+                              child: Card(
+                                color: Colors.white,
+                                elevation: 1,
+                                shadowColor: Colors.black12,
+                                margin: const EdgeInsets.only(bottom: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                subtitle: Text(
-                                  'Последнее: ${lastMessage?.text ?? 'Начните беседу'}',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                trailing: Text(
-                                  timeAgo,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
+                                child: ListTile(
+                                  title: Text(
+                                    chat.title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  subtitle: Text(
+                                    'Последнее: ${lastMessage?.text ?? 'Начните беседу'}',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  trailing: Text(
+                                    timeAgo,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ),
                               ),
