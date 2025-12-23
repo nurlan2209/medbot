@@ -1,0 +1,11 @@
+services:
+  medbot-api:
+    build:
+      context: ./server
+    env_file:
+      - ./server/.env
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    volumes:
+      - ./server/uploads:/app/uploads

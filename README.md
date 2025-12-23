@@ -1,16 +1,22 @@
-# med_bot
+# medbot (MedBot)
 
-A new Flutter project.
+Flutter iOS app + Node/Express backend (JWT + MongoDB + Gemini).
 
-## Getting Started
+## Backend (server)
 
-This project is a starting point for a Flutter application.
+- Create `server/.env` from `server/.env.example`
 
-A few resources to get you started if this is your first Flutter project:
+### Option A: Docker (recommended)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- From repo root: `docker compose up -d --build`
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Option B: Local Node
+
+- Install deps: `cd server && npm i`
+- Run: `cd server && node index.js`
+
+## App (Flutter iOS)
+
+Your iPhone app must call the backend by IP/port (not `localhost`).
+
+- Run with base URL: `flutter run --dart-define=API_BASE_URL=http://<SERVER_IP>:3001`

@@ -1,193 +1,115 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:med_bot/config.dart';
+import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/network/api_client.dart';
+import 'package:med_bot/app/widgets/primary_button.dart';
+import 'package:med_bot/app/widgets/text_input.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  final Map<String, dynamic> userData;
-  const EditProfileScreen({super.key, required this.userData});
+  final Map<String, dynamic> initialUser;
+  const EditProfileScreen({super.key, required this.initialUser});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  late TextEditingController _fullNameController;
-  late TextEditingController _emailController;
-  late TextEditingController _dateOfBirthController;
-  late TextEditingController _bloodGroupController;
-  late TextEditingController _heightController;
-  late TextEditingController _weightController;
-  late String _gender;
-  bool _isLoading = false;
+  late final TextEditingController _fullNameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _ageController;
+  late final TextEditingController _phoneController;
+
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _fullNameController = TextEditingController(
-      text: widget.userData['fullName'] ?? '',
-    );
-    _emailController = TextEditingController(
-      text: widget.userData['email'] ?? '',
-    );
-    _dateOfBirthController = TextEditingController(
-      text: widget.userData['dateOfBirth'] ?? '',
-    );
-    _bloodGroupController = TextEditingController(
-      text: widget.userData['bloodGroup'] ?? '',
-    );
-    _heightController = TextEditingController(
-      text: widget.userData['height'] ?? '',
-    );
-    _weightController = TextEditingController(
-      text: widget.userData['weight'] ?? '',
-    );
-    _gender = widget.userData['gender'] ?? 'Мужской';
+    _fullNameController = TextEditingController(text: (widget.initialUser['fullName'] ?? '').toString());
+    _emailController = TextEditingController(text: (widget.initialUser['email'] ?? '').toString());
+    _ageController = TextEditingController(text: (widget.initialUser['age'] ?? '').toString());
+    _phoneController = TextEditingController(text: (widget.initialUser['phoneNumber'] ?? '').toString());
   }
 
-  Future<void> _saveProfile() async {
-    setState(() {
-      _isLoading = true;
-    });
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _ageController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
 
+  Future<void> _save() async {
+    setState(() => _saving = true);
     try {
-      final response = await http.put(
-        Uri.parse('$serverUrl/user/${_emailController.text}'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'fullName': _fullNameController.text,
-          'dateOfBirth': _dateOfBirthController.text,
-          'gender': _gender,
-          'bloodGroup': _bloodGroupController.text,
-          'height': _heightController.text,
-          'weight': _weightController.text,
-        }),
+      await ApiClient.putJson(
+        '/user/${_emailController.text.trim()}',
+        body: {
+          'fullName': _fullNameController.text.trim(),
+          'age': int.tryParse(_ageController.text.trim()),
+          'phoneNumber': _phoneController.text.trim(),
+        },
       );
-
-      if (response.statusCode == 200) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Профиль успешно обновлен'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.pop(context, true);
-        }
-      } else {
-        if (mounted) {
-          final responseData = json.decode(response.body);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Ошибка: ${responseData['message']}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated')),
+      );
+      Navigator.pop(context, true);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Не удалось подключиться к серверу: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.danger),
+      );
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _saving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text('Редактировать профиль'),
-        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text('User Information'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildTextField(controller: _fullNameController, label: 'ФИО'),
-            const SizedBox(height: 16),
-            _buildTextField(
-              controller: _emailController,
-              label: 'Email',
-              enabled: false,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              children: [
+                TextInput(label: 'Full name', controller: _fullNameController, hintText: 'John Doe'),
+                const SizedBox(height: 16),
+                TextInput(label: 'Email', controller: _emailController, enabled: false),
+                const SizedBox(height: 16),
+                TextInput(label: 'Age', controller: _ageController, keyboardType: TextInputType.number, hintText: '25'),
+                const SizedBox(height: 16),
+                TextInput(
+                  label: 'Phone number',
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  hintText: '+7 (777) 123-45-67',
+                ),
+                const SizedBox(height: 24),
+                PrimaryButton(
+                  fullWidth: true,
+                  onPressed: _saving ? null : _save,
+                  child: _saving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save'),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            _buildTextField(
-              controller: _dateOfBirthController,
-              label: 'Дата рождения',
-            ),
-            const SizedBox(height: 16),
-            _buildGenderDropdown(),
-            const SizedBox(height: 16),
-            _buildTextField(
-              controller: _bloodGroupController,
-              label: 'Группа крови',
-            ),
-            const SizedBox(height: 16),
-            _buildTextField(controller: _heightController, label: 'Рост'),
-            const SizedBox(height: 16),
-            _buildTextField(controller: _weightController, label: 'Вес'),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _saveProfile,
-              child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Сохранить'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    bool enabled = true,
-  }) {
-    return TextField(
-      controller: controller,
-      enabled: enabled,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-      ),
-    );
-  }
-
-  Widget _buildGenderDropdown() {
-    return DropdownButtonFormField(
-      value: _gender,
-      decoration: const InputDecoration(
-        labelText: 'Пол',
-        border: OutlineInputBorder(),
-      ),
-      items: <String>['Мужской', 'Женский'].map<DropdownMenuItem<String>>((
-        String value,
-      ) {
-        return DropdownMenuItem<String>(value: value, child: Text(value));
-      }).toList(),
-      onChanged: (String? newValue) {
-        setState(() {
-          _gender = newValue!;
-        });
-      },
     );
   }
 }

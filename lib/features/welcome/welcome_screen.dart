@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/widgets/primary_button.dart';
 import 'package:med_bot/features/auth/login_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -7,101 +9,55 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Image.asset('assets/images/welcome_image.jpg', fit: BoxFit.cover,),
-
-              const SizedBox(height: 50),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'Добро пожаловать в МедБот',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'PPNeueMachina',
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black,
-                      ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                      alignment: Alignment.center,
+                      child: const Text('M', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w500)),
                     ),
-                    const SizedBox(height: 16),
-                    Text.rich(
-                      TextSpan(
-                        text: 'Технологии, которые ',
-                        style: TextStyle(
-                          fontFamily: 'PPNeueMachina',
-                          fontSize: 20,
-                          color: Colors.black54,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: 'заботятся',
-                            style: TextStyle(
-                              fontFamily: 'NauryzRedKeds',
-                              fontSize: 24,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w900
-                            ),
-                          ),
-                          TextSpan(
-                            text: ' о вас',
-                            style: TextStyle(
-                              fontFamily: 'PPNeueMachina',
-                              fontSize: 20,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w800
-                            ),
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 50),
-
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadiusGeometry.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Авторизация +',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontFamily: 'PPNeueMachina',
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            ],
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Medical Assistant',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontSize: 24),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Your AI-powered health companion',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
+                  ),
+                  const SizedBox(height: 32),
+                  PrimaryButton(
+                    fullWidth: true,
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      );
+                    },
+                    child: const Text('Continue'),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 }
+

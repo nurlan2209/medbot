@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:med_bot/app/auth/auth_storage.dart';
+import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/network/api_client.dart';
+import 'package:med_bot/app/widgets/primary_button.dart';
+import 'package:med_bot/app/widgets/text_input.dart';
 import 'package:med_bot/features/main_screen.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:med_bot/config.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -15,287 +16,192 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _dateOfBirthController = TextEditingController();
-  final _phoneNumberController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _emergencyContactController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  bool _agreeToTerms = false;
   bool _isLoading = false;
-
-  bool _isPasswordObscured = true;
-  bool _isConfirmPasswordObscured = true;
-
-  Future<void> _register() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Пароли не совпадают'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final response = await http.post(
-        Uri.parse('$serverUrl/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'fullName': _fullNameController.text,
-          'email': _emailController.text,
-          'dateOfBirth': _dateOfBirthController.text,
-          'phoneNumber': _phoneNumberController.text,
-          'password': _passwordController.text,
-        }),
-      );
-
-      if (!mounted) return;
-
-      final responseData = json.decode(response.body);
-
-      if (response.statusCode == 201) {
-        final userEmail = responseData['user']['email'];
-
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MainScreen(userEmail: userEmail),
-          ),
-          (Route<dynamic> route) => false,
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка ${responseData['message']}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Не удалось подключиться к серверу: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
 
   @override
   void dispose() {
     _fullNameController.dispose();
     _emailController.dispose();
-    _dateOfBirthController.dispose();
-    _phoneNumberController.dispose();
+    _ageController.dispose();
+    _emergencyContactController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
+  Future<void> _submit() async {
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Passwords do not match'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      return;
+    }
+    if (!_agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Accept the terms'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final responseData = await ApiClient.postJson(
+        '/register',
+        auth: false,
+        body: {
+          'fullName': _fullNameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'age': int.tryParse(_ageController.text.trim()),
+          'phoneNumber': _emergencyContactController.text.trim(),
+          'password': _passwordController.text,
+        },
+      );
+
+      final user = responseData['user'] as Map<String, dynamic>?;
+      final token = responseData['token']?.toString();
+
+      if (user == null || token == null || token.isEmpty) {
+        throw ApiException(500, 'Invalid server response');
+      }
+
+      await AuthStorage.saveSession(
+        token: token,
+        email: (user['email'] ?? '').toString(),
+        fullName: (user['fullName'] ?? '').toString(),
+      );
+
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => MainScreen(userEmail: (user['email'] ?? '').toString())),
+        (_) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.danger),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Регистрация', style: TextStyle(color: Colors.black)),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Создайте учетную запись, чтобы продолжить!',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 30),
-
-            _buildInputField(
-              label: 'ФИО',
-              controller: _fullNameController,
-              hint: 'Введите ФИО',
-            ),
-            const SizedBox(height: 20),
-
-            _buildInputField(
-              label: 'Email',
-              controller: _emailController,
-              hint: 'Введите Email',
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 20),
-
-            _buildInputField(
-              label: 'Дата рождения',
-              controller: _dateOfBirthController,
-              hint: 'ДД.ММ.ГГГГ',
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(8),
-                DateTextFormatter(),
-              ],
-              suffixIcon: const Icon(Icons.calendar_today),
-            ),
-            const SizedBox(height: 20),
-
-            _buildInputField(
-              label: 'Номер телефона',
-              controller: _phoneNumberController,
-              hint: 'Введите номер',
-              keyboardType: TextInputType.phone,
-              prefixIcon: const Icon(Icons.phone),
-            ),
-            const SizedBox(height: 20),
-
-            _buildInputField(
-              label: 'Введите пароль',
-              controller: _passwordController,
-              hint: 'Введите пароль',
-              obscureText: _isPasswordObscured,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _isPasswordObscured ? Icons.visibility_off : Icons.visibility,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isPasswordObscured = !_isPasswordObscured;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            _buildInputField(
-              label: 'Подтвердите пароль',
-              controller: _confirmPasswordController,
-              hint: 'Подтвердите пароль',
-              obscureText: _isConfirmPasswordObscured,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _isConfirmPasswordObscured
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isConfirmPasswordObscured = !_isConfirmPasswordObscured;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(height: 40),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _register,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Регистрация',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-    );
-  }
-
-  Widget _buildInputField({
-    required String label,
-    required TextEditingController controller,
-    required String hint,
-    TextInputType? keyboardType,
-    List<TextInputFormatter>? inputFormatters,
-    Widget? suffixIcon,
-    Widget? prefixIcon,
-    bool obscureText = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          inputFormatters: inputFormatters,
-          obscureText: obscureText,
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: prefixIcon,
-            suffixIcon: suffixIcon,
-            filled: true,
-            fillColor: Colors.grey[100],
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Тіркелу', style: Theme.of(context).textTheme.headlineLarge),
+                const SizedBox(height: 8),
+                Text(
+                  'Fill in your details',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
+                ),
+                const SizedBox(height: 24),
+                TextInput(
+                  label: 'Full name',
+                  hintText: 'Your full name',
+                  controller: _fullNameController,
+                ),
+                const SizedBox(height: 16),
+                TextInput(
+                  label: 'Email',
+                  hintText: 'example@mail.com',
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+                TextInput(
+                  label: 'Age',
+                  hintText: '25',
+                  controller: _ageController,
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                TextInput(
+                  label: 'Emergency contact',
+                  hintText: '+7 (777) 123-45-67',
+                  controller: _emergencyContactController,
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 16),
+                TextInput(
+                  label: 'Password',
+                  hintText: '••••••••',
+                  controller: _passwordController,
+                  isPassword: true,
+                ),
+                const SizedBox(height: 16),
+                TextInput(
+                  label: 'Confirm password',
+                  hintText: '••••••••',
+                  controller: _confirmPasswordController,
+                  isPassword: true,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: _agreeToTerms,
+                      activeColor: AppColors.primary,
+                      onChanged: (v) => setState(() => _agreeToTerms = v ?? false),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Text(
+                          'I accept the terms and privacy policy',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(fontSize: 14, color: AppColors.grayLight),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                PrimaryButton(
+                  fullWidth: true,
+                  onPressed: _isLoading ? null : _submit,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Create account'),
+                ),
+              ],
             ),
           ),
         ),
-      ],
+      ),
     );
-  }
-}
-
-class DateTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    if (oldValue.text.length >= newValue.text.length) {
-      return newValue;
-    }
-
-    var dateText = _addSeparators(newValue.text, '.');
-    return newValue.copyWith(
-      text: dateText,
-      selection: updateCursorPosition(dateText),
-    );
-  }
-
-  String _addSeparators(String value, String separator) {
-    value = value.replaceAll(separator, '');
-    var newString = '';
-    for (int i = 0; i < value.length; i++) {
-      newString += value[i];
-      if (i == 1) {
-        newString += separator;
-      }
-      if (i == 3) {
-        newString += separator;
-      }
-    }
-    return newString;
-  }
-
-  TextSelection updateCursorPosition(String text) {
-    return TextSelection.fromPosition(TextPosition(offset: text.length));
   }
 }
