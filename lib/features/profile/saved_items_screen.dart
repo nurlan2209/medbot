@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/features/profile/saved_items_models.dart';
 import 'package:share_plus/share_plus.dart';
@@ -49,7 +50,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        title: const Text('Saved Items'),
+        title: Text(context.l10n.savedItemsTitle),
         actions: [
           IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
         ],
@@ -60,7 +61,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
             : _items.isEmpty
                 ? Center(
                     child: Text(
-                      'No saved items yet.',
+                      context.l10n.noSavedItems,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
                     ),
                   )
@@ -78,10 +79,10 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
                             final ok = await showDialog<bool>(
                               context: context,
                               builder: (context) => AlertDialog(
-                                title: const Text('Delete saved item?'),
+                                title: Text(context.l10n.deleteSavedItem),
                                 actions: [
-                                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                                  TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+                                  TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.cancel)),
+                                  TextButton(onPressed: () => Navigator.pop(context, true), child: Text(context.l10n.delete)),
                                 ],
                               ),
                             );
@@ -172,7 +173,7 @@ class _SavedItemDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        title: const Text('Saved Item'),
+        title: Text(context.l10n.savedItem),
         actions: [
           IconButton(
             onPressed: () => Share.share(item.content, subject: item.title),

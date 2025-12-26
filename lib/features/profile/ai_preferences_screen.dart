@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/features/profile/user_settings_models.dart';
 
@@ -57,7 +58,7 @@ class _AiPreferencesScreenState extends State<AiPreferencesScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        title: const Text('AI Preferences'),
+        title: Text(context.l10n.aiPreferencesTitle),
       ),
       body: SafeArea(
         child: _loading
@@ -78,10 +79,10 @@ class _AiPreferencesScreenState extends State<AiPreferencesScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Use medical data in AI responses'),
+                              Text(context.l10n.useMedicalDataTitle),
                               const SizedBox(height: 4),
                               Text(
-                                'Allow AI to personalize responses using your Medical Card.',
+                                context.l10n.useMedicalDataSubtitle,
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grayLight),
                               ),
                             ],
@@ -104,4 +105,3 @@ class _AiPreferencesScreenState extends State<AiPreferencesScreen> {
     );
   }
 }
-

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/auth/auth_storage.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
+import 'package:med_bot/app/localization/locale_controller.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/app/widgets/section_card.dart';
 import 'package:med_bot/features/main_screen.dart';
@@ -66,7 +68,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _openAiPreferences() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const AiPreferencesScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AiPreferencesScreen()),
+    );
   }
 
   void _openChatHistory() {
@@ -74,19 +79,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _openSavedItems() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedItemsScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SavedItemsScreen()),
+    );
   }
 
   void _openDisclaimer() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const LegalTextScreen(
-          title: 'Medical Disclaimer',
-          body:
-              '⚠️ This application provides informational support only and does not replace professional medical advice.\n\n'
-              'Always consult with qualified healthcare professionals for medical decisions.\n\n'
-              'If you believe you are experiencing an emergency, call your local emergency number immediately.',
+        builder: (_) => LegalTextScreen(
+          title: context.l10n.medicalDisclaimer,
+          body: context.l10n.medicalDisclaimerBody,
         ),
       ),
     );
@@ -96,33 +101,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const LegalTextScreen(
-          title: 'Privacy Policy',
-          body:
-              'We respect your privacy.\n\n'
-              'Data stored may include your account details, medical card information, and chat history. '
-              'This data is used to provide and improve the service.\n\n'
-              'You can control some data settings from "Data Privacy Settings".',
+        builder: (_) => LegalTextScreen(
+          title: context.l10n.privacyPolicy,
+          body: context.l10n.privacyPolicyBody,
         ),
       ),
     );
   }
 
   void _openDataPrivacy() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const DataPrivacyScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const DataPrivacyScreen()),
+    );
   }
 
   Future<void> _deleteAccount() async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete account?'),
-        content: const Text('This will permanently delete your account and data.'),
+        title: Text(context.l10n.deleteAccountTitle),
+        content: Text(context.l10n.deleteAccountBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.cancel),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.danger)),
+            child: Text(
+              context.l10n.delete,
+              style: const TextStyle(color: AppColors.danger),
+            ),
           ),
         ],
       ),
@@ -140,7 +150,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.danger),
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: AppColors.danger,
+        ),
       );
     }
   }
@@ -148,11 +161,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: SafeArea(child: Center(child: CircularProgressIndicator())));
+      return const Scaffold(
+        body: SafeArea(child: Center(child: CircularProgressIndicator())),
+      );
     }
 
-    final name = _fullName.isEmpty ? 'John Doe' : _fullName;
-    final email = _email.isEmpty ? 'john.doe@email.com' : _email;
+    final name = _fullName.isEmpty ? 'Айбек Нұрлан' : _fullName;
+    final email = _email.isEmpty ? 'aibek.nurlan@mail.kz' : _email;
 
     return Scaffold(
       body: SafeArea(
@@ -161,15 +176,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Container(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-              decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border))),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: AppColors.border)),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Profile', style: Theme.of(context).textTheme.headlineLarge),
+                  Text(
+                    context.l10n.profileHeader,
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
                   const SizedBox(height: 4),
                   Text(
-                    'Settings and preferences',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
+                    context.l10n.profileSubheader,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.grayLight,
+                    ),
                   ),
                 ],
               ),
@@ -187,11 +209,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Container(
                           width: 64,
                           height: 64,
-                          decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
                           alignment: Alignment.center,
                           child: Text(
                             _initials(name),
-                            style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -199,16 +228,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(name, style: Theme.of(context).textTheme.headlineMedium),
+                              Text(
+                                name,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineMedium,
+                              ),
                               const SizedBox(height: 4),
                               Text(
                                 email,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: AppColors.grayLight),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.chevron_right, color: AppColors.grayLight),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: AppColors.grayLight,
+                        ),
                       ],
                     ),
                   ),
@@ -220,37 +258,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
+                  _LanguageSwitcher(
+                    onChanged: (code) =>
+                        LocaleControllerScope.of(context).setLanguageCode(code),
+                  ),
+                  const SizedBox(height: 20),
                   _Section(
-                    title: 'Account',
+                    title: context.l10n.accountSection,
                     items: [
-                      _MenuItem(icon: Icons.person_outline, label: 'User Information', onTap: _openUserInfo),
-                      _MenuItem(icon: Icons.settings_outlined, label: 'AI Preferences', onTap: _openAiPreferences),
+                      _MenuItem(
+                        icon: Icons.person_outline,
+                        label: context.l10n.userInformation,
+                        onTap: _openUserInfo,
+                      ),
+                      _MenuItem(
+                        icon: Icons.settings_outlined,
+                        label: context.l10n.aiPreferences,
+                        onTap: _openAiPreferences,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
                   _Section(
-                    title: 'History & Data',
+                    title: context.l10n.historyDataSection,
                     items: [
-                      _MenuItem(icon: Icons.access_time, label: 'Chat History', onTap: _openChatHistory),
-                      _MenuItem(icon: Icons.bookmark_border, label: 'Saved Items', onTap: _openSavedItems),
+                      _MenuItem(
+                        icon: Icons.access_time,
+                        label: context.l10n.chatHistory,
+                        onTap: _openChatHistory,
+                      ),
+                      _MenuItem(
+                        icon: Icons.bookmark_border,
+                        label: context.l10n.savedItems,
+                        onTap: _openSavedItems,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
                   _Section(
-                    title: 'Legal & Privacy',
+                    title: context.l10n.legalPrivacySection,
                     items: [
-                      _MenuItem(icon: Icons.description_outlined, label: 'Medical Disclaimer', onTap: _openDisclaimer),
-                      _MenuItem(icon: Icons.shield_outlined, label: 'Privacy Policy', onTap: _openPrivacyPolicy),
-                      _MenuItem(icon: Icons.shield_outlined, label: 'Data Privacy Settings', onTap: _openDataPrivacy),
+                      _MenuItem(
+                        icon: Icons.description_outlined,
+                        label: context.l10n.medicalDisclaimer,
+                        onTap: _openDisclaimer,
+                      ),
+                      _MenuItem(
+                        icon: Icons.shield_outlined,
+                        label: context.l10n.privacyPolicy,
+                        onTap: _openPrivacyPolicy,
+                      ),
+                      _MenuItem(
+                        icon: Icons.shield_outlined,
+                        label: context.l10n.dataPrivacySettings,
+                        onTap: _openDataPrivacy,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
                   _Section(
-                    title: 'Danger Zone',
+                    title: context.l10n.dangerZone,
                     items: [
                       _MenuItem(
                         icon: Icons.delete_outline,
-                        label: 'Delete Account',
+                        label: context.l10n.deleteAccount,
                         onTap: _deleteAccount,
                         danger: true,
                       ),
@@ -263,9 +334,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Center(
               child: Column(
                 children: [
-                  Text('Medical Assistant v1.0.0', style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    '${context.l10n.welcomeTitle} v1.0.0',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                   const SizedBox(height: 4),
-                  Text('© 2025 All rights reserved', style: Theme.of(context).textTheme.bodySmall),
+                  Text('© 2025', style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
             ),
@@ -277,9 +351,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   padding: const EdgeInsets.all(16),
                   color: AppColors.surfaceMuted,
                   child: Text(
-                    '⚠️ This application provides informational support only and does not replace professional medical advice. Always consult with qualified healthcare professionals for medical decisions.',
+                    context.l10n.disclaimerShort,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grayDark),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.grayDark),
                   ),
                 ),
               ),
@@ -291,10 +367,111 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   static String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\\s+')).where((p) => p.isNotEmpty).toList();
-    if (parts.isEmpty) return 'JD';
-    if (parts.length == 1) return parts.first.characters.take(2).toString().toUpperCase();
-    return (parts[0].characters.first + parts[1].characters.first).toUpperCase();
+    final parts = name
+        .trim()
+        .split(RegExp(r'\\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return 'АН';
+    if (parts.length == 1) {
+      return parts.first.characters.take(2).toString().toUpperCase();
+    }
+    return (parts[0].characters.first + parts[1].characters.first)
+        .toUpperCase();
+  }
+}
+
+class _LanguageSwitcher extends StatelessWidget {
+  final ValueChanged<String> onChanged;
+  const _LanguageSwitcher({required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = LocaleControllerScope.of(context);
+    final current = controller.locale?.languageCode ?? 'ru';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 10),
+          child: Text(
+            context.l10n.language,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontSize: 14,
+              color: AppColors.grayLight,
+            ),
+          ),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: _LangOption(
+                isActive: current == 'ru',
+                flag: '🇷🇺',
+                label: context.l10n.russian,
+                onTap: () => onChanged('ru'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _LangOption(
+                isActive: current == 'kk',
+                flag: '🇰🇿',
+                label: context.l10n.kazakh,
+                onTap: () => onChanged('kk'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _LangOption extends StatelessWidget {
+  final bool isActive;
+  final String flag;
+  final String label;
+  final VoidCallback onTap;
+
+  const _LangOption({
+    required this.isActive,
+    required this.flag,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.surfaceMuted : AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isActive ? AppColors.primary : AppColors.border,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(flag, style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: isActive ? AppColors.primary : AppColors.foreground,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -312,13 +489,19 @@ class _Section extends StatelessWidget {
           padding: const EdgeInsets.only(left: 8, bottom: 10),
           child: Text(
             title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 14, color: AppColors.grayLight),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontSize: 14,
+              color: AppColors.grayLight,
+            ),
           ),
         ),
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            decoration: BoxDecoration(border: Border.all(color: AppColors.border), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
               children: List.generate(items.length, (index) {
                 final item = items[index];
@@ -329,21 +512,38 @@ class _Section extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: AppColors.surface,
-                      border: isLast ? null : const Border(bottom: BorderSide(color: AppColors.border)),
+                      border: isLast
+                          ? null
+                          : const Border(
+                              bottom: BorderSide(color: AppColors.border),
+                            ),
                     ),
                     child: Row(
                       children: [
-                        Icon(item.icon, size: 20, color: item.danger ? AppColors.danger : AppColors.primary),
+                        Icon(
+                          item.icon,
+                          size: 20,
+                          color: item.danger
+                              ? AppColors.danger
+                              : AppColors.primary,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             item.label,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: item.danger ? AppColors.danger : AppColors.foreground,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: item.danger
+                                      ? AppColors.danger
+                                      : AppColors.foreground,
                                 ),
                           ),
                         ),
-                        const Icon(Icons.chevron_right, size: 18, color: AppColors.grayLight),
+                        const Icon(
+                          Icons.chevron_right,
+                          size: 18,
+                          color: AppColors.grayLight,
+                        ),
                       ],
                     ),
                   ),
@@ -362,5 +562,10 @@ class _MenuItem {
   final String label;
   final VoidCallback onTap;
   final bool danger;
-  const _MenuItem({required this.icon, required this.label, required this.onTap, this.danger = false});
+  const _MenuItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.danger = false,
+  });
 }

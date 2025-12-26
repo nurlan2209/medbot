@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/app/widgets/section_card.dart';
 import 'package:med_bot/features/medical/medical_card_edit_screen.dart';
@@ -69,7 +70,7 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
       await ApiClient.putJson('/user/medical-card', body: {'medicalCard': updated.toJson()});
       if (!mounted) return;
       setState(() => _card = updated);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Medical Card saved')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.medicalCardSaved)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,8 +82,8 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: SafeArea(child: Center(child: CircularProgressIndicator())));
-    }
+        return const Scaffold(body: SafeArea(child: Center(child: CircularProgressIndicator())));
+      }
 
     return Scaffold(
       body: SafeArea(
@@ -98,10 +99,10 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Medical Card', style: Theme.of(context).textTheme.headlineLarge),
+                        Text(context.l10n.medicalCardHeader, style: Theme.of(context).textTheme.headlineLarge),
                         const SizedBox(height: 4),
                         Text(
-                          'Your personal health information',
+                          context.l10n.medicalCardSubheader,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
                         ),
                       ],
@@ -120,10 +121,10 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Use medical data in AI responses', style: Theme.of(context).textTheme.bodyMedium),
+                        Text(context.l10n.useMedicalDataTitle, style: Theme.of(context).textTheme.bodyMedium),
                         const SizedBox(height: 4),
                         Text(
-                          'Allow AI to personalize responses',
+                          context.l10n.useMedicalDataSubtitle,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grayLight),
                         ),
                       ],
@@ -146,23 +147,23 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
                 children: [
                   _simpleCard(
                     context,
-                    title: 'Personal Information',
+                    title: context.l10n.personalInfo,
                     child: Column(
                       children: [
-                        _row('Name', _value(_card.personalInfo.name)),
-                        _row('Date of Birth', _value(_card.personalInfo.dateOfBirth)),
-                        _row('Blood Type', _value(_card.personalInfo.bloodType)),
-                        _row('Height', _value(_card.personalInfo.height)),
-                        _row('Weight', _value(_card.personalInfo.weight)),
+                        _row(context.l10n.nameLabel, _value(_card.personalInfo.name)),
+                        _row(context.l10n.dobLabel, _value(_card.personalInfo.dateOfBirth)),
+                        _row(context.l10n.bloodTypeLabel, _value(_card.personalInfo.bloodType)),
+                        _row(context.l10n.heightLabel, _value(_card.personalInfo.height)),
+                        _row(context.l10n.weightLabel, _value(_card.personalInfo.weight)),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
                   _simpleCard(
                     context,
-                    title: 'Chronic Conditions',
+                    title: context.l10n.chronicConditions,
                     child: Column(
-                      children: (_card.chronicConditions.isEmpty ? const ['None'] : _card.chronicConditions)
+                      children: (_card.chronicConditions.isEmpty ? [context.l10n.none] : _card.chronicConditions)
                           .map((c) => _listTile(text: c))
                           .toList(growable: false),
                     ),
@@ -177,12 +178,12 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
                           children: [
                             const Icon(Icons.error_outline, color: AppColors.danger, size: 20),
                             const SizedBox(width: 8),
-                            Text('Allergies (Critical)', style: Theme.of(context).textTheme.headlineMedium),
+                            Text(context.l10n.allergiesCritical, style: Theme.of(context).textTheme.headlineMedium),
                           ],
                         ),
                         const SizedBox(height: 12),
                         if (_card.allergies.isEmpty)
-                          _listTile(text: 'None')
+                          _listTile(text: context.l10n.none)
                         else
                           ..._card.allergies.map((a) => Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
@@ -202,7 +203,7 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
                                             Text(_value(a.name), style: Theme.of(context).textTheme.bodyMedium),
                                             const SizedBox(height: 2),
                                             Text(
-                                              'Severity: ${_value(a.severity)}',
+                                              '${context.l10n.severityLabel}: ${_value(a.severity)}',
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .bodySmall
@@ -222,10 +223,10 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
                   const SizedBox(height: 16),
                   _simpleCard(
                     context,
-                    title: 'Current Medications',
+                    title: context.l10n.currentMedications,
                     child: Column(
                       children: _card.currentMedications.isEmpty
-                          ? [_listTile(text: 'None')]
+                          ? [_listTile(text: context.l10n.none)]
                           : _card.currentMedications
                               .map((m) => Padding(
                                     padding: const EdgeInsets.only(bottom: 12),
@@ -258,10 +259,10 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
                   const SizedBox(height: 16),
                   _simpleCard(
                     context,
-                    title: 'Medical Documents',
+                    title: context.l10n.medicalDocuments,
                     child: Column(
                       children: _card.documents.isEmpty
-                          ? [_listTile(text: 'None')]
+                          ? [_listTile(text: context.l10n.none)]
                           : _card.documents
                               .map((d) => Padding(
                                     padding: const EdgeInsets.only(bottom: 10),
@@ -357,4 +358,3 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
     );
   }
 }
-

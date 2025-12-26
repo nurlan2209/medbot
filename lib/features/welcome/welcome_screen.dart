@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/widgets/primary_button.dart';
 import 'package:med_bot/features/auth/login_screen.dart';
 
@@ -30,13 +31,13 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Medical Assistant',
+                    context.l10n.welcomeTitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontSize: 24),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Your AI-powered health companion',
+                    context.l10n.welcomeSubtitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
                   ),
@@ -49,7 +50,7 @@ class WelcomeScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       );
                     },
-                    child: const Text('Continue'),
+                    child: Text(context.l10n.welcomeContinue),
                   ),
                 ],
               ),
@@ -60,4 +61,3 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 }
-

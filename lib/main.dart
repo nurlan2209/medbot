@@ -1,24 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/auth/auth_storage.dart';
+import 'package:med_bot/app/localization/locale_controller.dart';
 import 'package:med_bot/app/design/app_theme.dart';
 import 'package:med_bot/features/main_screen.dart';
 import 'package:med_bot/features/welcome/welcome_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:med_bot/l10n/app_localizations.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MedBotApp());
+  final localeController = LocaleController();
+  await localeController.load();
+  runApp(
+    LocaleControllerScope(
+      controller: localeController,
+      child: MedBotApp(localeController: localeController),
+    ),
+  );
 }
 
 class MedBotApp extends StatelessWidget {
-  const MedBotApp({super.key});
+  final LocaleController localeController;
+  const MedBotApp({super.key, required this.localeController});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'MedBot',
-      theme: AppTheme.light(),
-      home: const _Bootstrapper(),
+    return AnimatedBuilder(
+      animation: localeController,
+      builder: (context, _) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+        theme: AppTheme.light(),
+        locale: localeController.locale,
+        supportedLocales: const [Locale('ru'), Locale('kk')],
+        localizationsDelegates: [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        localeResolutionCallback: (deviceLocale, supportedLocales) {
+          final forced = localeController.locale;
+          if (forced != null) return forced;
+          if (deviceLocale == null) return const Locale('ru');
+          for (final s in supportedLocales) {
+            if (s.languageCode == deviceLocale.languageCode) return s;
+          }
+          return const Locale('ru');
+        },
+        home: const _Bootstrapper(),
+      ),
     );
   }
 }

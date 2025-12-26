@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/features/chat/chat_models.dart';
 import 'package:med_bot/features/profile/user_settings_models.dart';
@@ -25,6 +26,7 @@ class AiChatScreenState extends State<AiChatScreen> {
   bool _sending = false;
 
   final _inputController = TextEditingController();
+  final _inputFocusNode = FocusNode();
 
   UserSettings _settings = const UserSettings(
     useMedicalDataInAI: true,
@@ -42,6 +44,7 @@ class AiChatScreenState extends State<AiChatScreen> {
   @override
   void dispose() {
     _inputController.dispose();
+    _inputFocusNode.dispose();
     super.dispose();
   }
 
@@ -88,21 +91,31 @@ class AiChatScreenState extends State<AiChatScreen> {
       final data = await ApiClient.getJson('/user/settings');
       final settingsJson = (data as Map)['settings'] as Map? ?? const {};
       if (!mounted) return;
-      setState(() => _settings = UserSettings.fromJson(settingsJson.cast<String, dynamic>()));
+      setState(
+        () => _settings = UserSettings.fromJson(
+          settingsJson.cast<String, dynamic>(),
+        ),
+      );
     } catch (_) {}
   }
 
   Future<void> _send() async {
     final text = _inputController.text.trim();
     if (text.isEmpty || _sending) return;
+    _inputController.clear();
+    await _sendText(text);
+  }
+
+  Future<void> _sendText(String text) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty || _sending) return;
 
     setState(() {
       _sending = true;
       _messages = [
         ..._messages,
-        ChatMessage(sender: 'user', text: text, timestamp: DateTime.now()),
+        ChatMessage(sender: 'user', text: trimmed, timestamp: DateTime.now()),
       ];
-      _inputController.clear();
     });
 
     try {
@@ -110,12 +123,12 @@ class AiChatScreenState extends State<AiChatScreen> {
       if (_chatId == null) {
         response = await ApiClient.postJson(
           '/api/chats',
-          body: {'userEmail': widget.userEmail, 'messageText': text},
+          body: {'userEmail': widget.userEmail, 'messageText': trimmed},
         );
       } else {
         response = await ApiClient.postJson(
           '/api/chats/$_chatId/messages',
-          body: {'messageText': text},
+          body: {'messageText': trimmed},
         );
       }
 
@@ -133,9 +146,23 @@ class AiChatScreenState extends State<AiChatScreen> {
       if (!mounted) return;
       setState(() => _sending = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.danger),
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: AppColors.danger,
+        ),
       );
     }
+  }
+
+  Future<void> _askFollowUp(ChatMessage botMessage) async {
+    if (_sending) return;
+
+    final lang = Localizations.localeOf(context).languageCode.toLowerCase();
+    final prompt = lang == 'kk'
+        ? 'Өзіңнің алдыңғы жауабыңды нақтылап бер: қарапайым тілмен, қысқа, 3–5 тармақ. Қажет болса 1–2 сұрақ қой.'
+        : 'Уточни свой предыдущий ответ: простыми словами, коротко, 3–5 пунктов. Если нужно — задай 1–2 уточняющих вопроса.';
+
+    await _sendText(prompt);
   }
 
   Future<void> _deleteChat(String chatId) async {
@@ -146,37 +173,49 @@ class AiChatScreenState extends State<AiChatScreen> {
   Future<void> _saveCurrent() async {
     final lastAi = _messages.lastWhere(
       (m) => m.sender != 'user' && m.text.trim().isNotEmpty,
-      orElse: () => ChatMessage(sender: 'bot', text: '', timestamp: DateTime.now()),
+      orElse: () =>
+          ChatMessage(sender: 'bot', text: '', timestamp: DateTime.now()),
     );
     if (lastAi.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nothing to save')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.nothingToSave)));
       return;
     }
 
     final firstUser = _messages.firstWhere(
       (m) => m.sender == 'user' && m.text.trim().isNotEmpty,
-      orElse: () => ChatMessage(sender: 'user', text: 'AI Chat', timestamp: DateTime.now()),
+      orElse: () => ChatMessage(
+        sender: 'user',
+        text: 'AI Chat',
+        timestamp: DateTime.now(),
+      ),
     );
-    final title = firstUser.text.trim().length > 60 ? '${firstUser.text.trim().substring(0, 60)}…' : firstUser.text.trim();
+    final title = firstUser.text.trim().length > 60
+        ? '${firstUser.text.trim().substring(0, 60)}…'
+        : firstUser.text.trim();
 
     try {
       await ApiClient.postJson(
         '/api/saved',
         body: {
           'type': 'chat_message',
-          'title': title.isEmpty ? 'Saved item' : title,
+          'title': title.isEmpty ? context.l10n.savedItem : title,
           'content': lastAi.text,
           'chatId': _chatId,
         },
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.saved)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.danger),
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: AppColors.danger,
+        ),
       );
     }
   }
@@ -184,15 +223,16 @@ class AiChatScreenState extends State<AiChatScreen> {
   Future<void> _shareCurrent() async {
     final lastAi = _messages.lastWhere(
       (m) => m.sender != 'user' && m.text.trim().isNotEmpty,
-      orElse: () => ChatMessage(sender: 'bot', text: '', timestamp: DateTime.now()),
+      orElse: () =>
+          ChatMessage(sender: 'bot', text: '', timestamp: DateTime.now()),
     );
     if (lastAi.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nothing to share')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.nothingToShare)));
       return;
     }
-    await Share.share(lastAi.text, subject: 'AI Chat');
+    await Share.share(lastAi.text, subject: context.l10n.navChat);
   }
 
   @override
@@ -202,8 +242,7 @@ class AiChatScreenState extends State<AiChatScreen> {
   }
 
   Widget _historyView(BuildContext context) {
-    final df = DateFormat('MMM d, y');
-    final tf = DateFormat('HH:mm');
+    final df = DateFormat('dd.MM.yyyy, HH:mm');
 
     return Scaffold(
       body: SafeArea(
@@ -212,15 +251,22 @@ class AiChatScreenState extends State<AiChatScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-              decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border))),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: AppColors.border)),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('AI Chat', style: Theme.of(context).textTheme.headlineLarge),
+                  Text(
+                    context.l10n.chatHeader,
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
                   const SizedBox(height: 4),
                   Text(
-                    'Medical consultation assistant',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
+                    context.l10n.chatSubheader,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.grayLight,
+                    ),
                   ),
                 ],
               ),
@@ -235,40 +281,59 @@ class AiChatScreenState extends State<AiChatScreen> {
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: _settings.useMedicalDataInAI ? AppColors.success : AppColors.grayLight,
+                      color: _settings.useMedicalDataInAI
+                          ? AppColors.success
+                          : AppColors.grayLight,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _settings.useMedicalDataInAI ? 'Medical profile applied' : 'Medical profile not applied',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grayDark),
+                    _settings.useMedicalDataInAI
+                        ? context.l10n.medicalProfileApplied
+                        : context.l10n.medicalProfileNotApplied,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.grayDark),
                   ),
                 ],
               ),
             ),
             Expanded(
-          child: RefreshIndicator(
+              child: RefreshIndicator(
                 onRefresh: _fetchHistory,
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text('Recent Chats', style: Theme.of(context).textTheme.headlineMedium)),
+                        Expanded(
+                          child: Text(
+                            context.l10n.recentChats,
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                        ),
                         FilledButton(
                           style: FilledButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
                           ),
                           onPressed: _startNewChat,
                           child: Row(
-                            children: const [
-                              Icon(Icons.add, size: 16),
-                              SizedBox(width: 6),
-                              Text('New Chat', style: TextStyle(fontSize: 14)),
+                            children: [
+                              const Icon(Icons.add, size: 16),
+                              const SizedBox(width: 6),
+                              Text(
+                                context.l10n.newChat,
+                                style: const TextStyle(fontSize: 14),
+                              ),
                             ],
                           ),
                         ),
@@ -284,15 +349,18 @@ class AiChatScreenState extends State<AiChatScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: 24),
                         child: Text(
-                          'No chats yet. Start a new chat.',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
+                          context.l10n.noChats,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.grayLight),
                         ),
                       )
                     else
                       ..._history.map((chat) {
-                        final last = chat.messages.isNotEmpty ? chat.messages.last.text : '—';
+                        final last = chat.messages.isNotEmpty
+                            ? chat.messages.last.text
+                            : '—';
                         final local = chat.updatedAt.toLocal();
-                        final dateLabel = DateTime.now().difference(local).inDays == 0 ? 'Today, ${tf.format(local)}' : df.format(local);
+                        final dateLabel = df.format(local);
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Dismissible(
@@ -302,10 +370,18 @@ class AiChatScreenState extends State<AiChatScreen> {
                               final ok = await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: const Text('Delete chat?'),
+                                  title: Text(context.l10n.deleteChat),
                                   actions: [
-                                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                                    TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: Text(context.l10n.cancel),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      child: Text(context.l10n.delete),
+                                    ),
                                   ],
                                 ),
                               );
@@ -318,7 +394,10 @@ class AiChatScreenState extends State<AiChatScreen> {
                               } catch (e) {
                                 if (!mounted) return;
                                 messenger.showSnackBar(
-                                  SnackBar(content: Text(e.toString()), backgroundColor: AppColors.danger),
+                                  SnackBar(
+                                    content: Text(e.toString()),
+                                    backgroundColor: AppColors.danger,
+                                  ),
                                 );
                                 _fetchHistory();
                               }
@@ -330,7 +409,10 @@ class AiChatScreenState extends State<AiChatScreen> {
                                 color: AppColors.danger,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(Icons.delete, color: Colors.white),
+                              child: const Icon(
+                                Icons.delete,
+                                color: Colors.white,
+                              ),
                             ),
                             child: InkWell(
                               onTap: () => _openChat(chat),
@@ -345,16 +427,34 @@ class AiChatScreenState extends State<AiChatScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(chat.title, style: Theme.of(context).textTheme.bodyMedium),
+                                    Text(
+                                      chat.title,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
+                                    ),
                                     const SizedBox(height: 6),
                                     Text(
                                       last,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: AppColors.grayLight,
+                                          ),
                                     ),
                                     const SizedBox(height: 8),
-                                    Text(dateLabel, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grayLight)),
+                                    Text(
+                                      dateLabel,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: AppColors.grayLight,
+                                          ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -381,16 +481,30 @@ class AiChatScreenState extends State<AiChatScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border))),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: AppColors.border)),
+              ),
               child: Row(
                 children: [
                   TextButton(
                     onPressed: _backToHistory,
-                    child: const Text('← Back'),
+                    child: Text(context.l10n.back),
                   ),
                   const Spacer(),
-                  IconButton(onPressed: _saveCurrent, icon: const Icon(Icons.bookmark_border, color: AppColors.grayLight)),
-                  IconButton(onPressed: _shareCurrent, icon: const Icon(Icons.share_outlined, color: AppColors.grayLight)),
+                  IconButton(
+                    onPressed: _saveCurrent,
+                    icon: const Icon(
+                      Icons.bookmark_border,
+                      color: AppColors.grayLight,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _shareCurrent,
+                    icon: const Icon(
+                      Icons.share_outlined,
+                      color: AppColors.grayLight,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -404,14 +518,20 @@ class AiChatScreenState extends State<AiChatScreen> {
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: _settings.useMedicalDataInAI ? AppColors.success : AppColors.grayLight,
+                      color: _settings.useMedicalDataInAI
+                          ? AppColors.success
+                          : AppColors.grayLight,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _settings.useMedicalDataInAI ? 'Medical profile applied' : 'Medical profile not applied',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grayDark),
+                    _settings.useMedicalDataInAI
+                        ? context.l10n.medicalProfileApplied
+                        : context.l10n.medicalProfileNotApplied,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.grayDark),
                   ),
                 ],
               ),
@@ -420,28 +540,49 @@ class AiChatScreenState extends State<AiChatScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  ..._messages.map((m) => _MessageBubble(message: m)),
+                  ..._messages.map(
+                    (m) => _MessageBubble(
+                      message: m,
+                      onAskFollowUp: () => _askFollowUp(m),
+                    ),
+                  ),
                 ],
               ),
             ),
             Container(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-              decoration: const BoxDecoration(border: Border(top: BorderSide(color: AppColors.border))),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: AppColors.border)),
+              ),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _inputController,
+                      focusNode: _inputFocusNode,
                       onSubmitted: (_) => _send(),
                       decoration: InputDecoration(
-                        hintText: 'Describe your symptoms...',
-                        hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
+                        hintText: context.l10n.describeSymptoms,
+                        hintStyle: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(color: AppColors.grayLight),
                         filled: true,
                         fillColor: AppColors.surfaceMuted,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
                   ),
@@ -453,12 +594,18 @@ class AiChatScreenState extends State<AiChatScreen> {
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         padding: EdgeInsets.zero,
                       ),
                       onPressed: _sending ? null : _send,
                       child: _sending
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
                           : const Icon(Icons.send, size: 20),
                     ),
                   ),
@@ -474,7 +621,8 @@ class AiChatScreenState extends State<AiChatScreen> {
 
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
-  const _MessageBubble({required this.message});
+  final VoidCallback onAskFollowUp;
+  const _MessageBubble({required this.message, required this.onAskFollowUp});
 
   @override
   Widget build(BuildContext context) {
@@ -486,15 +634,24 @@ class _MessageBubble extends StatelessWidget {
     switch (risk) {
       case _Risk.high:
         riskColor = AppColors.danger;
-        riskLabel = 'High Risk';
+        riskLabel =
+            Localizations.localeOf(context).languageCode.toLowerCase() == 'kk'
+            ? 'Жоғары қауіп'
+            : 'Высокий риск';
         break;
       case _Risk.medium:
         riskColor = AppColors.warning;
-        riskLabel = 'Medium Risk';
+        riskLabel =
+            Localizations.localeOf(context).languageCode.toLowerCase() == 'kk'
+            ? 'Орташа қауіп'
+            : 'Средний риск';
         break;
       case _Risk.low:
         riskColor = AppColors.success;
-        riskLabel = 'Low Risk';
+        riskLabel =
+            Localizations.localeOf(context).languageCode.toLowerCase() == 'kk'
+            ? 'Төмен қауіп'
+            : 'Низкий риск';
         break;
       case null:
         break;
@@ -503,10 +660,14 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.8,
+            ),
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -519,11 +680,19 @@ class _MessageBubble extends StatelessWidget {
                   if (!isUser && riskColor != null && riskLabel != null) ...[
                     Row(
                       children: [
-                        Container(width: 8, height: 8, decoration: BoxDecoration(color: riskColor, shape: BoxShape.circle)),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: riskColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           riskLabel,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grayDark),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.grayDark),
                         ),
                       ],
                     ),
@@ -534,17 +703,23 @@ class _MessageBubble extends StatelessWidget {
                   Text(
                     message.text,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isUser ? Colors.white : AppColors.foreground,
-                        ),
+                      color: isUser ? Colors.white : AppColors.foreground,
+                    ),
                   ),
                   if (!isUser) ...[
                     const SizedBox(height: 12),
                     const Divider(height: 1, color: AppColors.border),
                     const SizedBox(height: 8),
                     TextButton(
-                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 0)),
-                      onPressed: () {},
-                      child: const Text('Ask follow-up →', style: TextStyle(fontSize: 12)),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 0),
+                      ),
+                      onPressed: onAskFollowUp,
+                      child: Text(
+                        context.l10n.askFollowUp,
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
                   ],
                 ],
@@ -561,8 +736,14 @@ enum _Risk { low, medium, high }
 
 _Risk? _riskLevel(String text) {
   final t = text.toLowerCase();
-  if (t.contains('call emergency') || t.contains('emergency') || t.contains('urgent')) return _Risk.high;
-  if (t.contains('consult') || t.contains('doctor') || t.contains('warning')) return _Risk.medium;
+  if (t.contains('call emergency') ||
+      t.contains('emergency') ||
+      t.contains('urgent')) {
+    return _Risk.high;
+  }
+  if (t.contains('consult') || t.contains('doctor') || t.contains('warning')) {
+    return _Risk.medium;
+  }
   if (t.isEmpty) return null;
   return _Risk.low;
 }

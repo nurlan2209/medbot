@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/features/profile/user_settings_models.dart';
 
@@ -58,7 +59,7 @@ class _DataPrivacyScreenState extends State<DataPrivacyScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        title: const Text('Data Privacy Settings'),
+        title: Text(context.l10n.dataPrivacyTitle),
       ),
       body: SafeArea(
         child: _loading
@@ -68,8 +69,8 @@ class _DataPrivacyScreenState extends State<DataPrivacyScreen> {
                 children: [
                   _tile(
                     context,
-                    title: 'Store chat history',
-                    subtitle: 'Keep your AI chat history synced to the server.',
+                    title: context.l10n.storeChatHistoryTitle,
+                    subtitle: context.l10n.storeChatHistorySubtitle,
                     value: _settings.storeChatHistory,
                     onChanged: (v) => _updatePatch(
                       {'storeChatHistory': v},
@@ -79,8 +80,8 @@ class _DataPrivacyScreenState extends State<DataPrivacyScreen> {
                   const SizedBox(height: 12),
                   _tile(
                     context,
-                    title: 'Share anonymous analytics',
-                    subtitle: 'Help improve the app by sharing anonymous usage data.',
+                    title: context.l10n.shareAnalyticsTitle,
+                    subtitle: context.l10n.shareAnalyticsSubtitle,
                     value: _settings.shareAnalytics,
                     onChanged: (v) => _updatePatch(
                       {'shareAnalytics': v},
@@ -135,4 +136,3 @@ class _DataPrivacyScreenState extends State<DataPrivacyScreen> {
     );
   }
 }
-

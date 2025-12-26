@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/widgets/primary_button.dart';
 import 'package:med_bot/app/widgets/section_card.dart';
 import 'package:med_bot/features/main_screen.dart';
@@ -12,18 +13,15 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final quickActions = const <_QuickAction>[
       _QuickAction(
-        title: 'Symptom Checker',
-        description: 'Check your symptoms',
+        titleKey: 'symptom',
         icon: Icons.monitor_heart_outlined,
       ),
       _QuickAction(
-        title: 'Drug Guide',
-        description: 'Search medications',
+        titleKey: 'drug',
         icon: Icons.medication_outlined,
       ),
       _QuickAction(
-        title: 'Analyze Document',
-        description: 'Upload medical files',
+        titleKey: 'doc',
         icon: Icons.upload_file_outlined,
       ),
     ];
@@ -35,10 +33,10 @@ class HomeScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
           children: [
-            Text('Medical Assistant', style: Theme.of(context).textTheme.headlineLarge),
+            Text(context.l10n.homeHeader, style: Theme.of(context).textTheme.headlineLarge),
             const SizedBox(height: 4),
             Text(
-              'Your AI-powered health companion',
+              context.l10n.homeSubheader,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
             ),
             const SizedBox(height: 20),
@@ -55,7 +53,7 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Search symptoms, diagnoses...',
+                          context.l10n.searchPlaceholder,
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
@@ -68,7 +66,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Quick Actions', style: Theme.of(context).textTheme.headlineMedium),
+            Text(context.l10n.quickActions, style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 12),
             ...quickActions.map((action) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -94,10 +92,10 @@ class HomeScreen extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(action.title, style: Theme.of(context).textTheme.titleMedium),
+                                  Text(action.title(context), style: Theme.of(context).textTheme.titleMedium),
                                   const SizedBox(height: 2),
                                   Text(
-                                    action.description,
+                                    action.description(context),
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyMedium
@@ -116,7 +114,7 @@ class HomeScreen extends StatelessWidget {
             PrimaryButton(
               fullWidth: true,
               onPressed: goToChat,
-              child: const Text('Ask AI Doctor'),
+              child: Text(context.l10n.askAiDoctor),
             ),
             const SizedBox(height: 20),
             SectionCard.noPadding(
@@ -124,7 +122,7 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 color: AppColors.surfaceMuted,
                 child: Text(
-                  '⚠️ This application provides informational support only and does not replace professional medical advice.',
+                  context.l10n.disclaimerShort,
                   textAlign: TextAlign.center,
                   style: Theme.of(context)
                       .textTheme
@@ -141,9 +139,23 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _QuickAction {
-  final String title;
-  final String description;
+  final String titleKey;
   final IconData icon;
-  const _QuickAction({required this.title, required this.description, required this.icon});
-}
+  const _QuickAction({required this.titleKey, required this.icon});
 
+  String title(BuildContext context) {
+    return switch (titleKey) {
+      'symptom' => context.l10n.symptomCheckerTitle,
+      'drug' => context.l10n.drugGuideTitle,
+      _ => context.l10n.analyzeDocumentTitle,
+    };
+  }
+
+  String description(BuildContext context) {
+    return switch (titleKey) {
+      'symptom' => context.l10n.symptomCheckerDesc,
+      'drug' => context.l10n.drugGuideDesc,
+      _ => context.l10n.analyzeDocumentDesc,
+    };
+  }
+}

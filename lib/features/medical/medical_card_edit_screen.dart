@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/widgets/primary_button.dart';
 import 'package:med_bot/app/widgets/text_input.dart';
 import 'package:med_bot/features/medical/medical_card_models.dart';
@@ -60,14 +61,20 @@ class _MedicalCardEditScreenState extends State<MedicalCardEditScreen> {
       ),
       chronicConditions: _conditions.where((e) => e.trim().isNotEmpty).toList(),
       allergies: _allergies.where((e) => e.name.trim().isNotEmpty).toList(),
-      currentMedications: _medications.where((e) => e.name.trim().isNotEmpty).toList(),
+      currentMedications: _medications
+          .where((e) => e.name.trim().isNotEmpty)
+          .toList(),
       documents: _documents.where((e) => e.name.trim().isNotEmpty).toList(),
     );
   }
 
   Future<void> _addCondition() async {
     final controller = TextEditingController();
-    final value = await _prompt(context, title: 'Add condition', controller: controller);
+    final value = await _prompt(
+      context,
+      title: context.l10n.addCondition,
+      controller: controller,
+    );
     if (value == null) return;
     setState(() => _conditions.add(value));
   }
@@ -78,23 +85,41 @@ class _MedicalCardEditScreenState extends State<MedicalCardEditScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add allergy'),
+        title: Text(context.l10n.addAllergy),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextInput(label: 'Name', controller: name, hintText: 'Penicillin'),
+            TextInput(
+              label: context.l10n.nameLabel,
+              controller: name,
+              hintText: 'Penicillin',
+            ),
             const SizedBox(height: 12),
-            TextInput(label: 'Severity', controller: severity, hintText: 'High'),
+            TextInput(
+              label: context.l10n.severityLabel,
+              controller: severity,
+              hintText: 'High',
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Add')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.save),
+          ),
         ],
       ),
     );
     if (ok != true) return;
-    setState(() => _allergies.add(Allergy(name: name.text.trim(), severity: severity.text.trim())));
+    setState(
+      () => _allergies.add(
+        Allergy(name: name.text.trim(), severity: severity.text.trim()),
+      ),
+    );
   }
 
   Future<void> _addMedication() async {
@@ -104,27 +129,49 @@ class _MedicalCardEditScreenState extends State<MedicalCardEditScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add medication'),
+        title: Text(context.l10n.addMedication),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextInput(label: 'Name', controller: name, hintText: 'Metformin'),
+            TextInput(
+              label: context.l10n.nameLabel,
+              controller: name,
+              hintText: 'Metformin',
+            ),
             const SizedBox(height: 12),
-            TextInput(label: 'Dosage', controller: dosage, hintText: '500mg'),
+            TextInput(
+              label: context.l10n.dosageLabel,
+              controller: dosage,
+              hintText: '500mg',
+            ),
             const SizedBox(height: 12),
-            TextInput(label: 'Frequency', controller: frequency, hintText: 'Twice daily'),
+            TextInput(
+              label: context.l10n.frequencyLabel,
+              controller: frequency,
+              hintText: 'Twice daily',
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Add')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.save),
+          ),
         ],
       ),
     );
     if (ok != true) return;
     setState(
       () => _medications.add(
-        Medication(name: name.text.trim(), dosage: dosage.text.trim(), frequency: frequency.text.trim()),
+        Medication(
+          name: name.text.trim(),
+          dosage: dosage.text.trim(),
+          frequency: frequency.text.trim(),
+        ),
       ),
     );
   }
@@ -135,58 +182,105 @@ class _MedicalCardEditScreenState extends State<MedicalCardEditScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add document'),
+        title: Text(context.l10n.addDocument),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextInput(label: 'Name', controller: name, hintText: 'Blood Test Results'),
+            TextInput(
+              label: context.l10n.nameLabel,
+              controller: name,
+              hintText: 'Blood Test Results',
+            ),
             const SizedBox(height: 12),
-            TextInput(label: 'Date', controller: date, hintText: 'Dec 10, 2025'),
+            TextInput(
+              label: context.l10n.dateLabel,
+              controller: date,
+              hintText: 'Dec 10, 2025',
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Add')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.save),
+          ),
         ],
       ),
     );
     if (ok != true) return;
-    setState(() => _documents.add(MedicalDocument(name: name.text.trim(), date: date.text.trim())));
+    setState(
+      () => _documents.add(
+        MedicalDocument(name: name.text.trim(), date: date.text.trim()),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        title: const Text('Edit Medical Card'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(context.l10n.editMedicalCard),
       ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            TextInput(label: 'Name', controller: _name, hintText: 'John Doe'),
+            TextInput(
+              label: context.l10n.nameLabel,
+              controller: _name,
+              hintText: 'Айбек Нұрлан',
+            ),
             const SizedBox(height: 12),
-            TextInput(label: 'Date of Birth', controller: _dob, hintText: 'January 15, 1985'),
+            TextInput(
+              label: context.l10n.dobLabel,
+              controller: _dob,
+              hintText: 'January 15, 1985',
+            ),
             const SizedBox(height: 12),
-            TextInput(label: 'Blood Type', controller: _blood, hintText: 'A+'),
+            TextInput(
+              label: context.l10n.bloodTypeLabel,
+              controller: _blood,
+              hintText: 'A+',
+            ),
             const SizedBox(height: 12),
-            TextInput(label: 'Height', controller: _height, hintText: '175 cm'),
+            TextInput(
+              label: context.l10n.heightLabel,
+              controller: _height,
+              hintText: '175 cm',
+            ),
             const SizedBox(height: 12),
-            TextInput(label: 'Weight', controller: _weight, hintText: '70 kg'),
+            TextInput(
+              label: context.l10n.weightLabel,
+              controller: _weight,
+              hintText: '70 kg',
+            ),
             const SizedBox(height: 20),
             _listSection(
               context,
-              title: 'Chronic Conditions',
-              addLabel: 'Add condition',
+              title: context.l10n.chronicConditions,
+              addLabel: context.l10n.addCondition,
               onAdd: _addCondition,
-              children: List.generate(_conditions.length, (i) => _pill(_conditions[i], () => setState(() => _conditions.removeAt(i)))),
+              children: List.generate(
+                _conditions.length,
+                (i) => _pill(
+                  _conditions[i],
+                  () => setState(() => _conditions.removeAt(i)),
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             _listSection(
               context,
-              title: 'Allergies',
-              addLabel: 'Add allergy',
+              title: context.l10n.allergiesCritical,
+              addLabel: context.l10n.addAllergy,
               onAdd: _addAllergy,
               children: List.generate(
                 _allergies.length,
@@ -199,8 +293,8 @@ class _MedicalCardEditScreenState extends State<MedicalCardEditScreen> {
             const SizedBox(height: 16),
             _listSection(
               context,
-              title: 'Current Medications',
-              addLabel: 'Add medication',
+              title: context.l10n.currentMedications,
+              addLabel: context.l10n.addMedication,
               onAdd: _addMedication,
               children: List.generate(
                 _medications.length,
@@ -213,8 +307,8 @@ class _MedicalCardEditScreenState extends State<MedicalCardEditScreen> {
             const SizedBox(height: 16),
             _listSection(
               context,
-              title: 'Medical Documents',
-              addLabel: 'Add document',
+              title: context.l10n.medicalDocuments,
+              addLabel: context.l10n.addDocument,
               onAdd: _addDocument,
               children: List.generate(
                 _documents.length,
@@ -228,12 +322,14 @@ class _MedicalCardEditScreenState extends State<MedicalCardEditScreen> {
             PrimaryButton(
               fullWidth: true,
               onPressed: () => Navigator.pop(context, _buildCard()),
-              child: const Text('Save'),
+              child: Text(context.l10n.save),
             ),
             const SizedBox(height: 12),
             Text(
-              'This data is used to personalize AI answers when enabled.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grayLight),
+              context.l10n.medicalCardEditHint,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.grayLight),
               textAlign: TextAlign.center,
             ),
           ],
@@ -261,12 +357,22 @@ class _MedicalCardEditScreenState extends State<MedicalCardEditScreen> {
         children: [
           Row(
             children: [
-              Expanded(child: Text(title, style: Theme.of(context).textTheme.headlineMedium)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ),
               TextButton(onPressed: onAdd, child: Text(addLabel)),
             ],
           ),
           if (children.isEmpty)
-            Text('None', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grayLight))
+            Text(
+              context.l10n.none,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.grayLight),
+            )
           else
             Wrap(spacing: 8, runSpacing: 8, children: children),
         ],
@@ -309,8 +415,14 @@ Future<String?> _prompt(
       title: Text(title),
       content: TextField(controller: controller, autofocus: true),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Add')),
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(context.l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(context.l10n.save),
+        ),
       ],
     ),
   );
@@ -318,4 +430,3 @@ Future<String?> _prompt(
   final value = controller.text.trim();
   return value.isEmpty ? null : value;
 }
-

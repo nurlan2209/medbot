@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EmergencyButton extends StatelessWidget {
@@ -22,9 +23,20 @@ class EmergencyButton extends StatelessWidget {
   }
 
   Future<void> _openDialog(BuildContext context) async {
-    final contacts = const [
-      _EmergencyContact(label: 'Emergency Services', number: '911', country: 'US'),
-      _EmergencyContact(label: 'Emergency Services', number: '112', country: 'EU'),
+    final lang = Localizations.localeOf(context).languageCode.toLowerCase();
+    final contacts = [
+      _EmergencyContact(
+        label: lang == 'kk'
+            ? '112 • Жедел қызмет (KZ)'
+            : '112 • Экстренные службы (KZ)',
+        number: '112',
+      ),
+      _EmergencyContact(
+        label: lang == 'kk'
+            ? '103 • Жедел жәрдем (KZ)'
+            : '103 • Скорая помощь (KZ)',
+        number: '103',
+      ),
     ];
 
     await showDialog<void>(
@@ -33,7 +45,9 @@ class EmergencyButton extends StatelessWidget {
       builder: (context) {
         return Dialog(
           insetPadding: const EdgeInsets.symmetric(horizontal: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -42,56 +56,70 @@ class EmergencyButton extends StatelessWidget {
                 Container(
                   width: 64,
                   height: 64,
-                  decoration: const BoxDecoration(color: AppColors.danger, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                    color: AppColors.danger,
+                    shape: BoxShape.circle,
+                  ),
                   child: const Icon(Icons.phone, color: Colors.white, size: 32),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Emergency Services',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 20),
+                  context.l10n.emergencyServices,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineMedium?.copyWith(fontSize: 20),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'If you are in danger, contact emergency services immediately.',
+                  context.l10n.emergencyBody,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
                 ),
                 const SizedBox(height: 16),
-                ...contacts.map((c) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.danger,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                ...contacts.map(
+                  (c) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.danger,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          onPressed: () => _call(c.number),
-                          child: Column(
-                            children: [
-                              Text(c.label),
-                              const SizedBox(height: 4),
-                              Text(c.number, style: const TextStyle(fontSize: 20)),
-                              const SizedBox(height: 2),
-                              Text('(${c.country})', style: const TextStyle(fontSize: 12, color: Colors.white70)),
-                            ],
-                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () => _call(c.number),
+                        child: Column(
+                          children: [
+                            Text(c.label, textAlign: TextAlign.center),
+                            const SizedBox(height: 4),
+                            Text(
+                              c.number,
+                              style: const TextStyle(fontSize: 20),
+                            ),
+                          ],
                         ),
                       ),
-                    )),
+                    ),
+                  ),
+                ),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.surfaceMuted,
                       foregroundColor: AppColors.foreground,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text(context.l10n.emergencyCancel),
                   ),
                 ),
               ],
@@ -113,7 +141,5 @@ class EmergencyButton extends StatelessWidget {
 class _EmergencyContact {
   final String label;
   final String number;
-  final String country;
-  const _EmergencyContact({required this.label, required this.number, required this.country});
+  const _EmergencyContact({required this.label, required this.number});
 }
-

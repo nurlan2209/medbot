@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/auth/auth_storage.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/app/widgets/primary_button.dart';
 import 'package:med_bot/app/widgets/text_input.dart';
@@ -105,13 +106,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 48),
                   Text(
-                    'Medical Assistant',
+                    context.l10n.loginTitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Your AI-powered health companion',
+                    context.l10n.loginSubtitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
@@ -120,15 +121,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 48),
                   TextInput(
-                    label: 'Email',
-                    hintText: 'example@mail.com',
+                    label: context.l10n.emailLabel,
+                    hintText: context.l10n.emailHint,
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
                   TextInput(
-                    label: 'Password',
-                    hintText: '••••••••',
+                    label: context.l10n.passwordLabel,
+                    hintText: context.l10n.passwordHint,
                     controller: _passwordController,
                     isPassword: true,
                   ),
@@ -142,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
                         );
                       },
-                      child: const Text('Forgot password?'),
+                      child: Text(context.l10n.forgotPassword),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -155,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Sign in'),
+                        : Text(context.l10n.signIn),
                   ),
                   const SizedBox(height: 12),
                   PrimaryButton(
@@ -167,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         MaterialPageRoute(builder: (_) => const RegistrationScreen()),
                       );
                     },
-                    child: const Text('Create account'),
+                    child: Text(context.l10n.createAccount),
                   ),
                   const SizedBox(height: 24),
                 ],

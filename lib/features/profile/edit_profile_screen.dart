@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/app/widgets/primary_button.dart';
 import 'package:med_bot/app/widgets/text_input.dart';
@@ -51,7 +52,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated')),
+        SnackBar(content: Text(context.l10n.saved)),
       );
       Navigator.pop(context, true);
     } catch (e) {
@@ -72,7 +73,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('User Information'),
+        title: Text(context.l10n.userInformation),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -81,17 +82,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             constraints: const BoxConstraints(maxWidth: 420),
             child: Column(
               children: [
-                TextInput(label: 'Full name', controller: _fullNameController, hintText: 'John Doe'),
+                TextInput(label: context.l10n.fullNameLabel, controller: _fullNameController, hintText: context.l10n.fullNameHint),
                 const SizedBox(height: 16),
-                TextInput(label: 'Email', controller: _emailController, enabled: false),
+                TextInput(label: context.l10n.emailLabel, controller: _emailController, enabled: false),
                 const SizedBox(height: 16),
-                TextInput(label: 'Age', controller: _ageController, keyboardType: TextInputType.number, hintText: '25'),
+                TextInput(label: context.l10n.ageLabel, controller: _ageController, keyboardType: TextInputType.number, hintText: context.l10n.ageHint),
                 const SizedBox(height: 16),
                 TextInput(
-                  label: 'Phone number',
+                  label: context.l10n.phoneNumber,
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  hintText: '+7 (777) 123-45-67',
+                  hintText: context.l10n.emergencyContactHint,
                 ),
                 const SizedBox(height: 24),
                 PrimaryButton(
@@ -103,7 +104,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save'),
+                      : Text(context.l10n.save),
                 ),
               ],
             ),

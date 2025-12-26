@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:med_bot/app/auth/auth_storage.dart';
 import 'package:med_bot/app/design/app_colors.dart';
+import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/app/widgets/primary_button.dart';
 import 'package:med_bot/app/widgets/text_input.dart';
@@ -38,19 +39,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   Future<void> _submit() async {
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Passwords do not match'),
-          backgroundColor: AppColors.danger,
-        ),
+        SnackBar(content: Text(context.l10n.passwordsDontMatch), backgroundColor: AppColors.danger),
       );
       return;
     }
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Accept the terms'),
-          backgroundColor: AppColors.danger,
-        ),
+        SnackBar(content: Text(context.l10n.acceptTermsError), backgroundColor: AppColors.danger),
       );
       return;
     }
@@ -115,50 +110,50 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Тіркелу', style: Theme.of(context).textTheme.headlineLarge),
+                Text(context.l10n.registerTitle, style: Theme.of(context).textTheme.headlineLarge),
                 const SizedBox(height: 8),
                 Text(
-                  'Fill in your details',
+                  context.l10n.registerSubtitle,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grayLight),
                 ),
                 const SizedBox(height: 24),
                 TextInput(
-                  label: 'Full name',
-                  hintText: 'Your full name',
+                  label: context.l10n.fullNameLabel,
+                  hintText: context.l10n.fullNameHint,
                   controller: _fullNameController,
                 ),
                 const SizedBox(height: 16),
                 TextInput(
-                  label: 'Email',
-                  hintText: 'example@mail.com',
+                  label: context.l10n.emailLabel,
+                  hintText: context.l10n.emailHint,
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 16),
                 TextInput(
-                  label: 'Age',
-                  hintText: '25',
+                  label: context.l10n.ageLabel,
+                  hintText: context.l10n.ageHint,
                   controller: _ageController,
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16),
                 TextInput(
-                  label: 'Emergency contact',
-                  hintText: '+7 (777) 123-45-67',
+                  label: context.l10n.emergencyContactLabel,
+                  hintText: context.l10n.emergencyContactHint,
                   controller: _emergencyContactController,
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 16),
                 TextInput(
-                  label: 'Password',
-                  hintText: '••••••••',
+                  label: context.l10n.passwordLabel,
+                  hintText: context.l10n.passwordHint,
                   controller: _passwordController,
                   isPassword: true,
                 ),
                 const SizedBox(height: 16),
                 TextInput(
-                  label: 'Confirm password',
-                  hintText: '••••••••',
+                  label: context.l10n.confirmPasswordLabel,
+                  hintText: context.l10n.passwordHint,
                   controller: _confirmPasswordController,
                   isPassword: true,
                 ),
@@ -175,7 +170,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: 10),
                         child: Text(
-                          'I accept the terms and privacy policy',
+                          context.l10n.acceptTerms,
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
@@ -195,7 +190,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Create account'),
+                      : Text(context.l10n.createAccount),
                 ),
               ],
             ),
