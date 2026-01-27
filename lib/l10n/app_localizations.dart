@@ -758,6 +758,24 @@ abstract class AppLocalizations {
   /// **'Опасная зона'**
   String get dangerZone;
 
+  /// No description provided for @signOut.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выйти'**
+  String get signOut;
+
+  /// No description provided for @signOutTitle.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выйти из аккаунта?'**
+  String get signOutTitle;
+
+  /// No description provided for @signOutBody.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы выйдете из аккаунта и потребуется войти снова.'**
+  String get signOutBody;
+
   /// No description provided for @deleteAccount.
   ///
   /// In ru, this message translates to:

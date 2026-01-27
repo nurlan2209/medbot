@@ -236,7 +236,6 @@ class _MedicalCardEditScreenState extends State<MedicalCardEditScreen> {
             TextInput(
               label: context.l10n.nameLabel,
               controller: _name,
-              hintText: 'Айбек Нұрлан',
             ),
             const SizedBox(height: 12),
             TextInput(

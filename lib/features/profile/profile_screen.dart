@@ -158,6 +158,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _signOut() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.signOutTitle),
+        content: Text(context.l10n.signOutBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.signOut),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await AuthStorage.clear();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      (_) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -166,8 +194,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    final name = _fullName.isEmpty ? 'Айбек Нұрлан' : _fullName;
-    final email = _email.isEmpty ? 'aibek.nurlan@mail.kz' : _email;
+    final name = _fullName.isEmpty ? '—' : _fullName;
+    final email = _email.isEmpty ? '—' : _email;
 
     return Scaffold(
       body: SafeArea(
@@ -320,6 +348,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: context.l10n.dangerZone,
                     items: [
                       _MenuItem(
+                        icon: Icons.logout,
+                        label: context.l10n.signOut,
+                        onTap: _signOut,
+                      ),
+                      _MenuItem(
                         icon: Icons.delete_outline,
                         label: context.l10n.deleteAccount,
                         onTap: _deleteAccount,
@@ -372,7 +405,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         .split(RegExp(r'\\s+'))
         .where((p) => p.isNotEmpty)
         .toList();
-    if (parts.isEmpty) return 'АН';
+    if (parts.isEmpty) return '??';
     if (parts.length == 1) {
       return parts.first.characters.take(2).toString().toUpperCase();
     }

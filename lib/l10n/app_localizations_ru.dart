@@ -341,6 +341,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dangerZone => 'Опасная зона';
 
   @override
+  String get signOut => 'Выйти';
+
+  @override
+  String get signOutTitle => 'Выйти из аккаунта?';
+
+  @override
+  String get signOutBody =>
+      'Вы выйдете из аккаунта и потребуется войти снова.';
+
+  @override
   String get deleteAccount => 'Удалить аккаунт';
 
   @override

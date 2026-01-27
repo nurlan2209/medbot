@@ -4,6 +4,8 @@ services:
       context: ./server
     env_file:
       - ./server/.env
+    environment:
+      - HOST=0.0.0.0
     ports:
       - "3001:3001"
     restart: unless-stopped

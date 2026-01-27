@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:med_bot/app/auth/auth_storage.dart';
 import 'package:med_bot/app/localization/locale_controller.dart';
 import 'package:med_bot/app/design/app_theme.dart';
+import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/features/main_screen.dart';
 import 'package:med_bot/features/welcome/welcome_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -75,6 +76,14 @@ class _BootstrapperState extends State<_Bootstrapper> {
     if (token == null || token.isEmpty) return null;
     final email = await AuthStorage.getEmail();
     if (email == null || email.isEmpty) return null;
+    try {
+      await ApiClient.getJson('/user/$email');
+    } catch (e) {
+      if (e is ApiException && e.statusCode == 401) {
+        await AuthStorage.clear();
+        return null;
+      }
+    }
     return _Session(email: email);
   }
 

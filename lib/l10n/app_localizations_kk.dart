@@ -341,6 +341,16 @@ class AppLocalizationsKk extends AppLocalizations {
   String get dangerZone => 'Қауіпті бөлім';
 
   @override
+  String get signOut => 'Шығу';
+
+  @override
+  String get signOutTitle => 'Аккаунттан шығу керек пе?';
+
+  @override
+  String get signOutBody =>
+      'Аккаунттан шығып, қайта кіру қажет болады.';
+
+  @override
   String get deleteAccount => 'Аккаунтты жою';
 
   @override
