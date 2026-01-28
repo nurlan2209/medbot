@@ -12,6 +12,8 @@
 .swiftpm/
 migrate_working_dir/
 server/node_modules/
+server/.env
+.env
 
 # IntelliJ related
 *.iml
