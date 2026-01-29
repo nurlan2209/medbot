@@ -65,8 +65,13 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     void goToChat() => MainScreen.of(context)?.setTab(1);
-    void startQuickAction(QuickActionType type) =>
-        widget.onQuickAction?.call(type) ?? MainScreen.of(context)?.startQuickAction(type);
+    void startQuickAction(QuickActionType type) {
+      if (widget.onQuickAction != null) {
+        widget.onQuickAction?.call(type);
+        return;
+      }
+      MainScreen.of(context)?.startQuickAction(type);
+    }
 
     final lang = Localizations.localeOf(context).languageCode.toLowerCase();
     final quote = _quote.isEmpty ? _fallbackQuote(lang) : _quote;
