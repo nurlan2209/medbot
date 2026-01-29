@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:med_bot/app/utils/phone_formatter.dart';
 import 'package:med_bot/app/auth/auth_storage.dart';
 import 'package:med_bot/app/design/app_colors.dart';
 import 'package:med_bot/app/localization/l10n_ext.dart';
@@ -142,6 +143,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   hintText: context.l10n.emergencyContactHint,
                   controller: _emergencyContactController,
                   keyboardType: TextInputType.phone,
+                  inputFormatters: const [KzPhoneFormatter()],
                 ),
                 const SizedBox(height: 16),
                 TextInput(

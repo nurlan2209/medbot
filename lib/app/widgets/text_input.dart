@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:med_bot/app/design/app_colors.dart';
 
 class TextInput extends StatefulWidget {
@@ -10,6 +11,7 @@ class TextInput extends StatefulWidget {
   final String? errorText;
   final bool enabled;
   final ValueChanged<String>? onChanged;
+  final List<TextInputFormatter>? inputFormatters;
 
   const TextInput({
     super.key,
@@ -21,6 +23,7 @@ class TextInput extends StatefulWidget {
     this.errorText,
     this.enabled = true,
     this.onChanged,
+    this.inputFormatters,
   });
 
   @override
@@ -49,6 +52,7 @@ class _TextInputState extends State<TextInput> {
           keyboardType: widget.keyboardType,
           obscureText: widget.isPassword && !_showPassword,
           onChanged: widget.onChanged,
+          inputFormatters: widget.inputFormatters,
           style: Theme.of(context).textTheme.bodyMedium,
           decoration: InputDecoration(
             hintText: widget.hintText,

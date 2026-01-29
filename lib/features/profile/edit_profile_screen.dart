@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:med_bot/app/utils/phone_formatter.dart';
 import 'package:med_bot/app/design/app_colors.dart';
 import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/network/api_client.dart';
@@ -93,6 +94,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   hintText: context.l10n.emergencyContactHint,
+                  inputFormatters: const [KzPhoneFormatter()],
                 ),
                 const SizedBox(height: 24),
                 PrimaryButton(
