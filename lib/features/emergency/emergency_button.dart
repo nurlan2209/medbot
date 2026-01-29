@@ -11,7 +11,7 @@ class EmergencyButton extends StatelessWidget {
     final bottomInset = MediaQuery.of(context).padding.bottom;
     return Positioned(
       right: 16,
-      bottom: 64 + bottomInset + 8,
+      bottom: 64 + bottomInset,
       child: FloatingActionButton(
         heroTag: 'emergency',
         backgroundColor: AppColors.danger,

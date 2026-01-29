@@ -479,23 +479,35 @@ app.get('/api/chats/:userEmail', requireAuth, async (req, res) => {
 });
 
 app.post('/api/chats', requireAuth, async (req, res) => {
-  const { userEmail, messageText } = req.body;
-  if (!userEmail || !messageText) {
-    return res.status(400).send({ message: 'Требуется email пользователя и текст сообщения' });
+  const { userEmail, messageText, systemPrompt, title } = req.body;
+  if (!userEmail) {
+    return res.status(400).send({ message: 'Требуется email пользователя' });
+  }
+  if (!messageText && !systemPrompt) {
+    return res.status(400).send({ message: 'Требуется текст сообщения или системный промпт' });
   }
   if (userEmail !== req.auth.email) {
     return res.status(403).send({ message: 'Нет доступа' });
   }
   try {
     const user = await User.findOne({ email: req.auth.email }).select('settings medicalCard fullName');
-    const userMessage = { sender: "user", text: messageText };
     const medicalContext = buildMedicalContext(user);
-    const botResponseText = await getGeminiResponse([userMessage], { medicalContext });
+    const historyForGemini = [];
+    if (systemPrompt) {
+      historyForGemini.push({ sender: 'user', text: String(systemPrompt) });
+    }
+    const hasUserMessage = typeof messageText === 'string' && messageText.trim().length > 0;
+    const actualMessage = hasUserMessage ? messageText : 'Start.';
+    historyForGemini.push({ sender: 'user', text: actualMessage });
+    const botResponseText = await getGeminiResponse(historyForGemini, { medicalContext });
     const botMessage = { sender: "bot", text: botResponseText };
+    const messages = hasUserMessage
+      ? [{ sender: 'user', text: messageText }, botMessage]
+      : [botMessage];
     const newChat = new Chat({
       userEmail,
-      title: messageText.substring(0, 50),
-      messages: [userMessage, botMessage],
+      title: (title && String(title).trim()) ? String(title).trim() : (hasUserMessage ? messageText.substring(0, 50) : 'Новый чат'),
+      messages,
     });
     await newChat.save();
     res.status(201).send({ message: "Новый чат создан", chat: newChat });

@@ -96,7 +96,7 @@ class AiChatScreenState extends State<AiChatScreen> {
     final lang = Localizations.localeOf(context).languageCode.toLowerCase();
     final prompt = _quickActionPrompt(type, lang);
     if (prompt.isEmpty) return;
-    await _sendText(prompt);
+    await _startQuickActionChat(type, prompt);
   }
 
   Future<void> _fetchSettings() async {
@@ -182,6 +182,48 @@ class AiChatScreenState extends State<AiChatScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _startQuickActionChat(QuickActionType type, String prompt) async {
+    if (_sending) return;
+    setState(() => _sending = true);
+    try {
+      final title = _quickActionTitle(type);
+      final response = await ApiClient.postJson(
+        '/api/chats',
+        body: {
+          'userEmail': widget.userEmail,
+          'systemPrompt': prompt,
+          'title': title,
+        },
+      );
+      final chatJson = response['chat'] as Map<String, dynamic>?;
+      if (chatJson == null) throw ApiException(500, 'Invalid server response');
+      final chat = ChatModel.fromJson(chatJson);
+      if (!mounted) return;
+      setState(() {
+        _chatId = chat.id;
+        _messages = chat.messages;
+        _sending = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _sending = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
+
+  String _quickActionTitle(QuickActionType type) {
+    return switch (type) {
+      QuickActionType.symptomCheck => context.l10n.symptomCheckerTitle,
+      QuickActionType.drugGuide => context.l10n.drugGuideTitle,
+      QuickActionType.analyzeResults => context.l10n.analyzeDocumentTitle,
+    };
   }
 
   Future<void> _askFollowUp(ChatMessage botMessage) async {
