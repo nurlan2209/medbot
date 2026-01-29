@@ -234,7 +234,7 @@ class _MedicalCardEditScreenState extends State<MedicalCardEditScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             TextInput(
-              label: context.l10n.nameLabel,
+              label: context.l10n.fullNameLabel,
               controller: _name,
             ),
             const SizedBox(height: 12),

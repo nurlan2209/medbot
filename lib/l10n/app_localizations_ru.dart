@@ -159,7 +159,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analyzeDocumentTitle => 'Анализ документов';
 
   @override
-  String get analyzeDocumentDesc => 'Загрузить мед. файлы';
+  String get analyzeDocumentDesc => 'Результаты анализов (текстом)';
 
   @override
   String get askAiDoctor => 'Спросить AI врача';

@@ -62,6 +62,26 @@ class ApiClient {
     throw ApiException(response.statusCode, decoded['message']?.toString() ?? 'Request failed');
   }
 
+  static Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    required http.MultipartFile file,
+    bool auth = true,
+  }) async {
+    final request = http.MultipartRequest('POST', _uri(path));
+    if (auth) {
+      final token = await AuthStorage.getToken();
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+    }
+    request.files.add(file);
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
+    final decoded = _tryDecode(body);
+    if (response.statusCode >= 200 && response.statusCode < 300) return decoded;
+    throw ApiException(response.statusCode, decoded['message']?.toString() ?? 'Request failed');
+  }
+
   static Future<Map<String, String>> _headers({required bool auth}) async {
     final headers = <String, String>{'Content-Type': 'application/json'};
     if (!auth) return headers;

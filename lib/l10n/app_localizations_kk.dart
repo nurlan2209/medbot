@@ -159,7 +159,7 @@ class AppLocalizationsKk extends AppLocalizations {
   String get analyzeDocumentTitle => 'Құжаттарды талдау';
 
   @override
-  String get analyzeDocumentDesc => 'Мед. файлдарды жүктеу';
+  String get analyzeDocumentDesc => 'Талдау нәтижелері (мәтінмен)';
 
   @override
   String get askAiDoctor => 'AI дәрігерден сұрау';

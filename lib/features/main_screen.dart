@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:med_bot/features/home/home_screen.dart';
 import 'package:med_bot/app/widgets/bottom_nav.dart';
 import 'package:med_bot/features/chat/ai_chat_screen.dart';
+import 'package:med_bot/features/chat/quick_action.dart';
 import 'package:med_bot/features/medical/medical_card_screen.dart';
 import 'package:med_bot/features/profile/profile_screen.dart';
 import 'package:med_bot/features/emergency/emergency_button.dart';
@@ -27,7 +28,7 @@ class MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _widgetOptions = <Widget>[
-      HomeScreen(userEmail: widget.userEmail),
+      HomeScreen(userEmail: widget.userEmail, onQuickAction: startQuickAction),
       AiChatScreen(key: _aiChatKey, userEmail: widget.userEmail),
       const MedicalCardScreen(),
       ProfileScreen(userEmail: widget.userEmail),
@@ -43,6 +44,13 @@ class MainScreenState extends State<MainScreen> {
   void openChatHistory() {
     setTab(1);
     _aiChatKey.currentState?.showHistory();
+  }
+
+  void startQuickAction(QuickActionType type) {
+    setTab(1);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _aiChatKey.currentState?.startQuickAction(type);
+    });
   }
 
   @override

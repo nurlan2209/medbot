@@ -5,6 +5,7 @@ import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/localization/locale_controller.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/app/widgets/section_card.dart';
+import 'package:med_bot/config.dart';
 import 'package:med_bot/features/main_screen.dart';
 import 'package:med_bot/features/profile/ai_preferences_screen.dart';
 import 'package:med_bot/features/profile/data_privacy_screen.dart';
@@ -12,6 +13,8 @@ import 'package:med_bot/features/profile/edit_profile_screen.dart';
 import 'package:med_bot/features/profile/legal_text_screen.dart';
 import 'package:med_bot/features/profile/saved_items_screen.dart';
 import 'package:med_bot/features/welcome/welcome_screen.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userEmail;
@@ -24,6 +27,9 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _loading = true;
   Map<String, dynamic>? _user;
+  bool _uploadingAvatar = false;
+  bool _skipNextEditTap = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -47,8 +53,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String get _fullName => (_user?['fullName'] ?? '').toString().trim();
   String get _email => (_user?['email'] ?? widget.userEmail).toString().trim();
+  String get _avatarUrl => (_user?['avatarUrl'] ?? '').toString().trim();
 
   Future<void> _openUserInfo() async {
+    if (_skipNextEditTap) {
+      _skipNextEditTap = false;
+      return;
+    }
     final user = _user;
     if (user == null) {
       await _load();
@@ -186,6 +197,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _pickAvatar() async {
+    _skipNextEditTap = true;
+    final file = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+    if (file == null) {
+      _skipNextEditTap = false;
+      return;
+    }
+    setState(() => _uploadingAvatar = true);
+    try {
+      final bytes = await file.readAsBytes();
+      final response = await ApiClient.postMultipart(
+        '/upload-avatar/$_email',
+        file: http.MultipartFile.fromBytes('avatar', bytes, filename: file.name),
+      );
+      final avatarUrl = (response['avatarUrl'] ?? '').toString().trim();
+      if (avatarUrl.isNotEmpty) {
+        setState(() {
+          final next = Map<String, dynamic>.from(_user ?? {});
+          next['avatarUrl'] = avatarUrl;
+          _user = next;
+        });
+      } else {
+        await _load();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _uploadingAvatar = false);
+      _skipNextEditTap = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -196,6 +250,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final name = _fullName.isEmpty ? '—' : _fullName;
     final email = _email.isEmpty ? '—' : _email;
+    final avatarUrl = _avatarUrl.isEmpty
+        ? null
+        : (_avatarUrl.startsWith('http') ? _avatarUrl : '$serverUrl$_avatarUrl');
 
     return Scaffold(
       body: SafeArea(
@@ -234,21 +291,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            _initials(name),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
-                            ),
+                        GestureDetector(
+                          onTapDown: (_) => _skipNextEditTap = true,
+                          onTapCancel: () => _skipNextEditTap = false,
+                          onTap: _pickAvatar,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Container(
+                                width: 64,
+                                height: 64,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: ClipOval(
+                                  child: avatarUrl == null
+                                      ? Text(
+                                          _initials(name),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        )
+                                      : Image.network(
+                                          avatarUrl,
+                                          width: 64,
+                                          height: 64,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Text(
+                                            _initials(name),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              Positioned(
+                                right: -2,
+                                bottom: -2,
+                                child: Container(
+                                  width: 22,
+                                  height: 22,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: AppColors.border),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    size: 14,
+                                    color: AppColors.grayLight,
+                                  ),
+                                ),
+                              ),
+                                  if (_uploadingAvatar)
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.4),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 16),

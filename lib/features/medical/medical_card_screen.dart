@@ -150,7 +150,7 @@ class _MedicalCardScreenState extends State<MedicalCardScreen> {
                     title: context.l10n.personalInfo,
                     child: Column(
                       children: [
-                        _row(context.l10n.nameLabel, _value(_card.personalInfo.name)),
+                        _row(context.l10n.fullNameLabel, _value(_card.personalInfo.name)),
                         _row(context.l10n.dobLabel, _value(_card.personalInfo.dateOfBirth)),
                         _row(context.l10n.bloodTypeLabel, _value(_card.personalInfo.bloodType)),
                         _row(context.l10n.heightLabel, _value(_card.personalInfo.height)),

@@ -4,6 +4,7 @@ import 'package:med_bot/app/design/app_colors.dart';
 import 'package:med_bot/app/localization/l10n_ext.dart';
 import 'package:med_bot/app/network/api_client.dart';
 import 'package:med_bot/features/chat/chat_models.dart';
+import 'package:med_bot/features/chat/quick_action.dart';
 import 'package:med_bot/features/profile/user_settings_models.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -86,6 +87,18 @@ class AiChatScreenState extends State<AiChatScreen> {
 
   void showHistory() => _backToHistory();
 
+  Future<void> startQuickAction(QuickActionType type) async {
+    setState(() {
+      _showHistory = false;
+      _chatId = null;
+      _messages = const [];
+    });
+    final lang = Localizations.localeOf(context).languageCode.toLowerCase();
+    final prompt = _quickActionPrompt(type, lang);
+    if (prompt.isEmpty) return;
+    await _sendText(prompt);
+  }
+
   Future<void> _fetchSettings() async {
     try {
       final data = await ApiClient.getJson('/user/settings');
@@ -97,6 +110,23 @@ class AiChatScreenState extends State<AiChatScreen> {
         ),
       );
     } catch (_) {}
+  }
+
+  String _quickActionPrompt(QuickActionType type, String lang) {
+    switch (type) {
+      case QuickActionType.symptomCheck:
+        return lang == 'kk'
+            ? 'Симптомдарды тексеру режимі. Пайдаланушыдан негізгі шағымдарын, белгілердің қашан басталғанын, жасын және маңызды медициналық тарихын (созылмалы аурулар, дәрілер, аллергия) сұра. Қысқа, нақты жауап бер.'
+            : 'Режим проверки симптомов. Спроси у пользователя основные жалобы, когда начались симптомы, возраст и важную мед.историю (хронические болезни, лекарства, аллергии). Ответ короткий и по делу.';
+      case QuickActionType.drugGuide:
+        return lang == 'kk'
+            ? 'Дәрілер анықтамалығы режимі. Пайдаланушыдан ауруын немесе симптомдарын, жасын және аллергияларын сұра. Жалпы ақпарат бер, диагноз қойма және рецепт тағайындама.'
+            : 'Режим справочника лекарств. Спроси у пользователя заболевание или симптомы, возраст и аллергии. Дай общую информацию, не ставь диагноз и не назначай лечение.';
+      case QuickActionType.analyzeResults:
+        return lang == 'kk'
+            ? 'Талдау нәтижелерін түсіндіру. Пайдаланушыдан зертханалық нәтижелерді мәтін түрінде жіберуін сұра (көрсеткіш, мән, өлшем бірлік, референс аралығы болса). Қысқа түсіндір.'
+            : 'Интерпретация результатов анализов. Попроси пользователя прислать результаты в текстовом виде (показатель, значение, единицы, референсы если есть). Кратко объясни.';
+    }
   }
 
   Future<void> _send() async {

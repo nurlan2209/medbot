@@ -7,6 +7,8 @@ function buildMedicalContext(user) {
 
   const lines = [];
   const p = card.personalInfo || {};
+  const fullName = (user?.fullName || '').trim();
+  const name = (p.name || '').toString().trim() || fullName;
   const push = (k, v) => {
     if (v === undefined || v === null) return;
     const s = String(v).trim();
@@ -14,7 +16,7 @@ function buildMedicalContext(user) {
     lines.push(`${k}: ${s}`);
   };
 
-  push("Name", p.name);
+  push("Name", name);
   push("Date of Birth", p.dateOfBirth);
   push("Blood Type", p.bloodType);
   push("Height", p.height);
